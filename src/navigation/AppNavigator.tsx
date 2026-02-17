@@ -3,12 +3,14 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { CartProvider, useCart } from "../context/CartContext";
-import { AuthProvider } from "../context/AuthContext";
+import { AuthProvider, useAuth } from "../context/AuthContext";
+import { colors } from "../styles/globalStyles";
 
 // Screens
 import HomeScreen from "../screens/HomeScreen";
+import StoreScreen from "../screens/StoreScreen";
 import CartScreen from "../screens/CartScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import MangaDetailScreen from "../screens/MangaDetailScreen";
@@ -42,8 +44,8 @@ function TabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          if (route.name === "Home") {
-            const iconName = focused ? "home" : "home-outline";
+          if (route.name === "Store") {
+            const iconName = focused ? "storefront" : "storefront-outline";
             return <Ionicons name={iconName} size={size} color={color} />;
           } else if (route.name === "Cart") {
             return (
@@ -60,9 +62,9 @@ function TabNavigator() {
       })}
     >
       <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ title: "Início" }}
+        name="Store"
+        component={StoreScreen}
+        options={{ title: "Loja" }}
       />
       <Tab.Screen
         name="Cart"
@@ -78,12 +80,22 @@ function TabNavigator() {
   );
 }
 
-export default function AppNavigator() {
+function AppContent() {
+  const { isLoggedIn, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
-    <AuthProvider>
-      <CartProvider>
-        <NavigationContainer>
-          <Stack.Navigator>
+    <NavigationContainer>
+      <Stack.Navigator>
+        {isLoggedIn ? (
+          <>
             <Stack.Screen
               name="Tabs"
               component={TabNavigator}
@@ -96,14 +108,36 @@ export default function AppNavigator() {
                 title: "Detalhes do Mangá",
               }}
             />
-          </Stack.Navigator>
-        </NavigationContainer>
+          </>
+        ) : (
+          <Stack.Screen
+            name="Auth"
+            component={HomeScreen}
+            options={{ headerShown: false }}
+          />
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+export default function AppNavigator() {
+  return (
+    <AuthProvider>
+      <CartProvider>
+        <AppContent />
       </CartProvider>
     </AuthProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.light,
+  },
   badge: {
     position: "absolute",
     top: -5,

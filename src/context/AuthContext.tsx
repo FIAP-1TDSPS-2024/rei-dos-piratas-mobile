@@ -24,7 +24,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (
-    userData: Omit<UserProfile, "id" | "createdAt"> & { password: string }
+    userData: Omit<UserProfile, "id" | "createdAt"> & { password: string },
   ) => Promise<boolean>;
   logout: () => Promise<void>;
   updateProfile: (profileData: Partial<UserProfile>) => Promise<void>;
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const saveUsersDatabase = async (
-    users: Array<UserProfile & { password: string }>
+    users: Array<UserProfile & { password: string }>,
   ) => {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.USERS_DB, JSON.stringify(users));
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const foundUser = users.find(
         (u) =>
           u.email.toLowerCase() === email.toLowerCase() &&
-          u.password === password
+          u.password === password,
       );
 
       if (foundUser) {
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setIsLoggedIn(true);
         await AsyncStorage.setItem(
           STORAGE_KEYS.CURRENT_USER,
-          JSON.stringify(userWithoutPassword)
+          JSON.stringify(userWithoutPassword),
         );
         return true;
       } else {
@@ -119,14 +119,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const register = async (
-    userData: Omit<UserProfile, "id" | "createdAt"> & { password: string }
+    userData: Omit<UserProfile, "id" | "createdAt"> & { password: string },
   ): Promise<boolean> => {
     try {
       const users = await getUsersDatabase();
 
       // Verificar se email já existe
       const emailExists = users.some(
-        (u) => u.email.toLowerCase() === userData.email.toLowerCase()
+        (u) => u.email.toLowerCase() === userData.email.toLowerCase(),
       );
       if (emailExists) {
         Alert.alert("Erro", "Este email já está cadastrado!");
@@ -155,7 +155,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoggedIn(true);
       await AsyncStorage.setItem(
         STORAGE_KEYS.CURRENT_USER,
-        JSON.stringify(userWithoutPassword)
+        JSON.stringify(userWithoutPassword),
       );
 
       Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
@@ -172,7 +172,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await AsyncStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
       setUser(null);
       setIsLoggedIn(false);
-      Alert.alert("Sucesso", "Logout realizado com sucesso!");
     } catch (error) {
       console.error("Erro no logout:", error);
       Alert.alert("Erro", "Erro ao fazer logout.");
@@ -189,7 +188,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(updatedUser);
       await AsyncStorage.setItem(
         STORAGE_KEYS.CURRENT_USER,
-        JSON.stringify(updatedUser)
+        JSON.stringify(updatedUser),
       );
 
       // Atualizar no banco de usuários
