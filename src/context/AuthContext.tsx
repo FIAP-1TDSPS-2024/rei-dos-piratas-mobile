@@ -7,15 +7,27 @@ import React, {
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
+import { STORAGE_KEYS as API_STORAGE_KEYS } from "../services/api";
+import {
+  AuthResponse,
+  Cliente,
+  RegisterRequest,
+} from "../services/authService";
+import {
+  useLoginMutation,
+  useRegisterMutation,
+} from "../hooks/useAuthMutations";
 
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
+  isActive: boolean;
+  createdAt: string;
+  birthDate: string;
+  gender: string;
   phone?: string;
   address?: string;
-  favoriteGenre?: string;
-  createdAt: string;
 }
 
 interface AuthContextType {
@@ -23,9 +35,7 @@ interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (
-    userData: Omit<UserProfile, "id" | "createdAt"> & { password: string },
-  ) => Promise<boolean>;
+  register: (data: RegisterRequest) => Promise<boolean>;
   logout: () => Promise<void>;
   updateProfile: (profileData: Partial<UserProfile>) => Promise<void>;
 }
@@ -37,15 +47,39 @@ interface AuthProviderProps {
 }
 
 const STORAGE_KEYS = {
-  USER: "@user_profile",
-  USERS_DB: "@users_database",
   CURRENT_USER: "@current_user",
 };
+
+function mapClienteToUserProfile(cliente: Cliente): UserProfile {
+  return {
+    id: String(cliente.id),
+    name: cliente.nome_completo,
+    email: cliente.email,
+    phone: cliente.celular,
+    isActive: cliente.usuario_ativo,
+    createdAt: cliente.data_cadastro,
+    birthDate: cliente.data_nascimento,
+    gender: cliente.sexo,
+  };
+}
+
+async function persistAuthData(response: AuthResponse) {
+  const userProfile = mapClienteToUserProfile(response.cliente);
+  await AsyncStorage.setItem(API_STORAGE_KEYS.AUTH_TOKEN, response.token);
+  await AsyncStorage.setItem(
+    STORAGE_KEYS.CURRENT_USER,
+    JSON.stringify(userProfile),
+  );
+  return userProfile;
+}
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const loginMutation = useLoginMutation();
+  const registerMutation = useRegisterMutation();
 
   // Carregar dados do usuário ao inicializar
   useEffect(() => {
@@ -54,8 +88,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const loadUserData = async () => {
     try {
-      const userData = await AsyncStorage.getItem(STORAGE_KEYS.CURRENT_USER);
-      if (userData) {
+      const [userData, token] = await Promise.all([
+        AsyncStorage.getItem(STORAGE_KEYS.CURRENT_USER),
+        AsyncStorage.getItem(API_STORAGE_KEYS.AUTH_TOKEN),
+      ]);
+
+      if (userData && token) {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
         setIsLoggedIn(true);
@@ -67,109 +105,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const getUsersDatabase = async (): Promise<
-    Array<UserProfile & { password: string }>
-  > => {
-    try {
-      const usersData = await AsyncStorage.getItem(STORAGE_KEYS.USERS_DB);
-      return usersData ? JSON.parse(usersData) : [];
-    } catch (error) {
-      console.error("Erro ao obter banco de usuários:", error);
-      return [];
-    }
-  };
-
-  const saveUsersDatabase = async (
-    users: Array<UserProfile & { password: string }>,
-  ) => {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEYS.USERS_DB, JSON.stringify(users));
-    } catch (error) {
-      console.error("Erro ao salvar banco de usuários:", error);
-    }
-  };
-
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const users = await getUsersDatabase();
-      const foundUser = users.find(
-        (u) =>
-          u.email.toLowerCase() === email.toLowerCase() &&
-          u.password === password,
-      );
-
-      if (foundUser) {
-        const { password: _, ...userWithoutPassword } = foundUser;
-        setUser(userWithoutPassword);
-        setIsLoggedIn(true);
-        await AsyncStorage.setItem(
-          STORAGE_KEYS.CURRENT_USER,
-          JSON.stringify(userWithoutPassword),
-        );
-        return true;
-      } else {
-        Alert.alert("Erro", "Email ou senha incorretos!");
-        return false;
-      }
-    } catch (error) {
+      const response = await loginMutation.mutateAsync({ email, password });
+      const userProfile = await persistAuthData(response);
+      setUser(userProfile);
+      setIsLoggedIn(true);
+      return true;
+    } catch (error: any) {
       console.error("Erro no login:", error);
-      Alert.alert("Erro", "Erro ao fazer login. Tente novamente.");
+      const message =
+        error?.response?.data?.message || "Email ou senha incorretos!";
+      Alert.alert("Erro", message);
       return false;
     }
   };
 
-  const register = async (
-    userData: Omit<UserProfile, "id" | "createdAt"> & { password: string },
-  ): Promise<boolean> => {
+  const register = async (data: RegisterRequest): Promise<boolean> => {
     try {
-      const users = await getUsersDatabase();
-
-      // Verificar se email já existe
-      const emailExists = users.some(
-        (u) => u.email.toLowerCase() === userData.email.toLowerCase(),
-      );
-      if (emailExists) {
-        Alert.alert("Erro", "Este email já está cadastrado!");
-        return false;
-      }
-
-      // Criar novo usuário
-      const newUser: UserProfile & { password: string } = {
-        id: Date.now().toString(),
-        name: userData.name,
-        email: userData.email,
-        phone: userData.phone,
-        address: userData.address,
-        favoriteGenre: userData.favoriteGenre,
-        password: userData.password,
-        createdAt: new Date().toISOString(),
-      };
-
-      // Salvar no banco de usuários
-      users.push(newUser);
-      await saveUsersDatabase(users);
-
-      // Fazer login automático
-      const { password: _, ...userWithoutPassword } = newUser;
-      setUser(userWithoutPassword);
+      const response = await registerMutation.mutateAsync(data);
+      const userProfile = await persistAuthData(response);
+      setUser(userProfile);
       setIsLoggedIn(true);
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.CURRENT_USER,
-        JSON.stringify(userWithoutPassword),
-      );
-
       Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro no cadastro:", error);
-      Alert.alert("Erro", "Erro ao criar conta. Tente novamente.");
+      const message =
+        error?.response?.data?.message ||
+        "Erro ao criar conta. Tente novamente.";
+      Alert.alert("Erro", message);
       return false;
     }
   };
 
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+      await AsyncStorage.multiRemove([
+        STORAGE_KEYS.CURRENT_USER,
+        API_STORAGE_KEYS.AUTH_TOKEN,
+      ]);
       setUser(null);
       setIsLoggedIn(false);
     } catch (error) {
@@ -183,21 +158,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!user) return;
 
       const updatedUser = { ...user, ...profileData };
-
-      // Atualizar usuário atual
       setUser(updatedUser);
       await AsyncStorage.setItem(
         STORAGE_KEYS.CURRENT_USER,
         JSON.stringify(updatedUser),
       );
-
-      // Atualizar no banco de usuários
-      const users = await getUsersDatabase();
-      const userIndex = users.findIndex((u) => u.id === user.id);
-      if (userIndex !== -1) {
-        users[userIndex] = { ...users[userIndex], ...profileData };
-        await saveUsersDatabase(users);
-      }
 
       Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
     } catch (error) {

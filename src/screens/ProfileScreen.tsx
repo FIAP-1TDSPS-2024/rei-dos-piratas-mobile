@@ -22,7 +22,6 @@ interface ProfileUpdateForm {
   name: string;
   phone?: string;
   address?: string;
-  favoriteGenre?: string;
 }
 
 export default function ProfileScreen() {
@@ -34,7 +33,6 @@ export default function ProfileScreen() {
     name: "",
     phone: "",
     address: "",
-    favoriteGenre: "",
   });
 
   // Carregar dados do perfil quando usuário estiver logado
@@ -44,7 +42,6 @@ export default function ProfileScreen() {
         name: user.name,
         phone: user.phone || "",
         address: user.address || "",
-        favoriteGenre: user.favoriteGenre || "",
       });
     }
   }, [user]);
@@ -59,7 +56,6 @@ export default function ProfileScreen() {
       name: profileForm.name,
       phone: profileForm.phone,
       address: profileForm.address,
-      favoriteGenre: profileForm.favoriteGenre,
     });
 
     setIsEditing(false);
@@ -182,23 +178,6 @@ export default function ProfileScreen() {
                 />
               </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Gênero Favorito</Text>
-                <TextInput
-                  style={[styles.input, !isEditing && styles.inputDisabled]}
-                  value={profileForm.favoriteGenre}
-                  onChangeText={(value) =>
-                    setProfileForm((prev) => ({
-                      ...prev,
-                      favoriteGenre: value,
-                    }))
-                  }
-                  placeholder="Ex: Ação, Romance, Aventura..."
-                  placeholderTextColor={colors.gray400}
-                  editable={isEditing}
-                />
-              </View>
-
               {isEditing && (
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity
@@ -218,7 +197,6 @@ export default function ProfileScreen() {
                         name: user.name,
                         phone: user.phone || "",
                         address: user.address || "",
-                        favoriteGenre: user.favoriteGenre || "",
                       });
                     }}
                   >

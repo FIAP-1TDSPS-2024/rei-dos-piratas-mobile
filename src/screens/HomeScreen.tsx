@@ -31,9 +31,10 @@ interface RegisterForm {
   email: string;
   password: string;
   confirmPassword: string;
-  phone?: string;
-  address?: string;
-  favoriteGenre?: string;
+  birthDate: string;
+  gender: string;
+  cpf: string;
+  phone: string;
 }
 
 export default function HomeScreen() {
@@ -53,9 +54,10 @@ export default function HomeScreen() {
     email: "",
     password: "",
     confirmPassword: "",
+    birthDate: "",
+    gender: "",
+    cpf: "",
     phone: "",
-    address: "",
-    favoriteGenre: "",
   });
 
   const handleLogin = async () => {
@@ -71,7 +73,15 @@ export default function HomeScreen() {
   };
 
   const handleRegister = async () => {
-    if (!registerForm.name || !registerForm.email || !registerForm.password) {
+    if (
+      !registerForm.name ||
+      !registerForm.email ||
+      !registerForm.password ||
+      !registerForm.cpf ||
+      !registerForm.birthDate ||
+      !registerForm.gender ||
+      !registerForm.phone
+    ) {
       Alert.alert("Erro", "Preencha os campos obrigatórios!");
       return;
     }
@@ -87,12 +97,13 @@ export default function HomeScreen() {
     }
 
     const success = await register({
-      name: registerForm.name,
+      nome_completo: registerForm.name,
       email: registerForm.email,
-      password: registerForm.password,
-      phone: registerForm.phone,
-      address: registerForm.address,
-      favoriteGenre: registerForm.favoriteGenre,
+      senha: registerForm.password,
+      data_nascimento: registerForm.birthDate,
+      sexo: registerForm.gender,
+      cpf: registerForm.cpf,
+      celular: registerForm.phone,
     });
 
     if (success) {
@@ -101,9 +112,10 @@ export default function HomeScreen() {
         email: "",
         password: "",
         confirmPassword: "",
+        birthDate: "",
+        gender: "",
+        cpf: "",
         phone: "",
-        address: "",
-        favoriteGenre: "",
       });
     }
   };
@@ -338,49 +350,61 @@ export default function HomeScreen() {
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Telefone</Text>
+                    <Text style={styles.label}>CPF *</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={registerForm.cpf}
+                      onChangeText={(value) =>
+                        setRegisterForm((prev) => ({ ...prev, cpf: value }))
+                      }
+                      placeholder="Digite seu CPF (somente números)"
+                      keyboardType="numeric"
+                      maxLength={11}
+                      placeholderTextColor={colors.gray400}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Celular *</Text>
                     <TextInput
                       style={styles.input}
                       value={registerForm.phone}
                       onChangeText={(value) =>
                         setRegisterForm((prev) => ({ ...prev, phone: value }))
                       }
-                      placeholder="Digite seu telefone"
+                      placeholder="Digite seu celular"
                       keyboardType="phone-pad"
                       placeholderTextColor={colors.gray400}
                     />
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Endereço</Text>
+                    <Text style={styles.label}>Data de Nascimento *</Text>
                     <TextInput
-                      style={[styles.input, styles.textArea]}
-                      value={registerForm.address}
+                      style={styles.input}
+                      value={registerForm.birthDate}
                       onChangeText={(value) =>
                         setRegisterForm((prev) => ({
                           ...prev,
-                          address: value,
+                          birthDate: value,
                         }))
                       }
-                      placeholder="Digite seu endereço completo"
-                      multiline
-                      numberOfLines={3}
+                      placeholder="AAAA-MM-DD"
                       placeholderTextColor={colors.gray400}
                     />
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Gênero Favorito</Text>
+                    <Text style={styles.label}>Sexo *</Text>
                     <TextInput
                       style={styles.input}
-                      value={registerForm.favoriteGenre}
+                      value={registerForm.gender}
                       onChangeText={(value) =>
-                        setRegisterForm((prev) => ({
-                          ...prev,
-                          favoriteGenre: value,
-                        }))
+                        setRegisterForm((prev) => ({ ...prev, gender: value }))
                       }
-                      placeholder="Ex: Ação, Romance, Aventura..."
+                      placeholder="M ou F"
+                      maxLength={1}
+                      autoCapitalize="characters"
                       placeholderTextColor={colors.gray400}
                     />
                   </View>
