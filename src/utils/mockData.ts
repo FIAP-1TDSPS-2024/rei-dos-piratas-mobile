@@ -1,0 +1,85 @@
+import { Manga } from "../types";
+
+export const MOCK_MANGAS: Manga[] = [
+  {
+    id: "1",
+    title: "Attack on Titan Vol. 1",
+    author: "Hajime Isayama",
+    price: 24.9,
+    originalPrice: 29.9,
+    rating: 4.8,
+    reviewCount: 1205,
+    imageUrl:
+      "https://images.unsplash.com/photo-1705927450843-3c1abe9b17d6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYW5nYSUyMGFuaW1lJTIwYm9va3MlMjBzdGFja3xlbnwxfHx8fDE3NTg3NDkwNTl8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    genre: "Ação",
+    isNew: false,
+    isOnSale: true,
+  },
+  {
+    id: "2",
+    title: "One Piece Vol. 1",
+    author: "Eiichiro Oda",
+    price: 22.9,
+    rating: 4.9,
+    reviewCount: 2341,
+    imageUrl:
+      "https://images.unsplash.com/photo-1723209386519-1a5ca4c98ae1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYW5nYSUyMGNvbWljJTIwamFwYW5lc2UlMjBhcnR8ZW58MXx8fHwxNzU4NzQ5MDYwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    genre: "Aventura",
+    isNew: true,
+    isOnSale: false,
+  },
+  {
+    id: "3",
+    title: "Death Note Vol. 1",
+    author: "Tsugumi Ohba",
+    price: 26.9,
+    originalPrice: 32.9,
+    rating: 4.7,
+    reviewCount: 987,
+    imageUrl:
+      "https://images.unsplash.com/photo-1653723367970-ae966c1b803e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbmltZSUyMG1hbmdhJTIwZHJhd2luZ3xlbnwxfHx8fDE3NTg3NDkwNjB8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    genre: "Thriller",
+    isNew: false,
+    isOnSale: true,
+  },
+  {
+    id: "4",
+    title: "Naruto Vol. 1",
+    author: "Masashi Kishimoto",
+    price: 21.9,
+    rating: 4.6,
+    reviewCount: 1543,
+    imageUrl:
+      "https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXBhbmVzZSUyMGFuaW1lJTIwbWFuZ2F8ZW58MXx8fHwxNzU4NzQ5MDYxfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    genre: "Ação",
+    isNew: false,
+    isOnSale: false,
+  },
+  {
+    id: "5",
+    title: "Your Name Vol. 1",
+    author: "Makoto Shinkai",
+    price: 28.9,
+    rating: 4.5,
+    reviewCount: 743,
+    imageUrl:
+      "https://images.unsplash.com/photo-1578662996442-48f60103fc96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbmltZSUyMG1hbmdhJTIwam9wYW58ZW58MXx8fHwxNzU4NzQ5MDYxfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    genre: "Romance",
+    isNew: true,
+    isOnSale: false,
+  },
+  {
+    id: "6",
+    title: "Dragon Ball Vol. 1",
+    author: "Akira Toriyama",
+    price: 19.9,
+    originalPrice: 24.9,
+    rating: 4.9,
+    reviewCount: 2876,
+    imageUrl:
+      "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbmltZSUyMG1hbmdhJTIwamFwYW5lc2V8ZW58MXx8fHwxNzU4NzQ5MDYyfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    genre: "Ação",
+    isNew: false,
+    isOnSale: true,
+  },
+];
