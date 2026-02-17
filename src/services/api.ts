@@ -1,12 +1,27 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 
 const STORAGE_KEYS = {
   AUTH_TOKEN: "@auth_token",
 };
 
+const getBaseURL = () => {
+  const debuggerHost =
+    Constants.expoConfig?.hostUri ??
+    Constants.manifest2?.extra?.expoGo?.debuggerHost;
+  const host = debuggerHost?.split(":")[0];
+
+  if (host) {
+    return `http://${host}:8080`;
+  }
+
+  // Fallback for web or production
+  return "http://localhost:8080";
+};
+
 const api = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: getBaseURL(),
   headers: {
     "Content-Type": "application/json",
   },
