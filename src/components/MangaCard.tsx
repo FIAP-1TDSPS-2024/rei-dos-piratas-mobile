@@ -49,7 +49,7 @@ export function MangaCard({
               <Text style={styles.badgeText}>Novo</Text>
             </View>
           )}
-          {manga.isOnSale && (
+          {manga.originalPrice && (
             <View style={[styles.badge, styles.badgeOnSale]}>
               <Text style={styles.badgeText}>Oferta</Text>
             </View>
@@ -69,15 +69,15 @@ export function MangaCard({
           {manga.author}
         </Text>
 
-        <View style={styles.ratingContainer}>
-          <Ionicons name="star" size={14} color="#fbbf24" />
-          <Text style={styles.rating}>
-            {manga.rating} ({manga.reviewCount})
-          </Text>
-        </View>
-
         <View style={styles.priceContainer}>
-          <Text style={styles.price}>R$ {manga.price.toFixed(2)}</Text>
+          <Text
+            style={{
+              ...styles.price,
+              ...(manga.originalPrice ? styles.priceOnSale : {}),
+            }}
+          >
+            R$ {manga.price.toFixed(2)}
+          </Text>
           {manga.originalPrice && (
             <Text style={styles.originalPrice}>
               R$ {manga.originalPrice.toFixed(2)}
@@ -190,6 +190,8 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 16,
     fontWeight: "bold",
+  },
+  priceOnSale: {
     color: colors.success,
   },
   originalPrice: {

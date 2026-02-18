@@ -45,7 +45,7 @@ export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
                 <Text style={styles.badgeText}>Novo</Text>
               </View>
             )}
-            {manga.isOnSale && (
+            {manga.originalPrice && (
               <View style={[styles.badge, styles.badgeOnSale]}>
                 <Text style={styles.badgeText}>Oferta</Text>
               </View>
@@ -60,18 +60,15 @@ export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
             <Text style={styles.genre}>{manga.genre}</Text>
           </View>
 
-          <View style={styles.ratingSection}>
-            <View style={styles.ratingContainer}>
-              <Ionicons name="star" size={20} color="#fbbf24" />
-              <Text style={styles.rating}>{manga.rating}</Text>
-            </View>
-            <Text style={styles.reviewCount}>
-              ({manga.reviewCount} avaliações)
-            </Text>
-          </View>
-
           <View style={styles.priceSection}>
-            <Text style={styles.price}>R$ {manga.price.toFixed(2)}</Text>
+            <Text
+              style={{
+                ...styles.price,
+                ...(manga.originalPrice ? styles.priceOnSale : {}),
+              }}
+            >
+              R$ {manga.price.toFixed(2)}
+            </Text>
             {manga.originalPrice && (
               <Text style={styles.originalPrice}>
                 R$ {manga.originalPrice.toFixed(2)}
@@ -84,7 +81,7 @@ export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
                   {Math.round(
                     ((manga.originalPrice - manga.price) /
                       manga.originalPrice) *
-                      100
+                      100,
                   )}
                   %
                 </Text>
@@ -92,20 +89,12 @@ export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
             )}
           </View>
 
-          <View style={styles.descriptionSection}>
-            <Text style={styles.sectionTitle}>Descrição</Text>
-            <Text style={styles.description}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-              enim ad minim veniam, quis nostrud exercitation ullamco laboris
-              nisi ut aliquip ex ea commodo consequat.
-              {"\n\n"}
-              Duis aute irure dolor in reprehenderit in voluptate velit esse
-              cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-              cupidatat non proident, sunt in culpa qui officia deserunt mollit
-              anim id est laborum.
-            </Text>
-          </View>
+          {manga.description && (
+            <View style={styles.descriptionSection}>
+              <Text style={styles.sectionTitle}>Descrição</Text>
+              <Text style={styles.description}>{manga.description}</Text>
+            </View>
+          )}
 
           <View style={styles.featuresSection}>
             <Text style={styles.sectionTitle}>Características</Text>
@@ -188,9 +177,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
   },
-  headerSection: {
-    marginBottom: 16,
-  },
+  headerSection: {},
   title: {
     fontSize: 28,
     fontWeight: "bold",
@@ -237,6 +224,8 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 32,
     fontWeight: "bold",
+  },
+  priceOnSale: {
     color: colors.success,
   },
   originalPrice: {
