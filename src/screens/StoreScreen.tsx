@@ -1,35 +1,38 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   StyleSheet,
   StatusBar,
   ActivityIndicator,
   Text,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { Header } from "../components/Header";
 import { CategoryFilter } from "../components/CategoryFilter";
 import { MangaGrid } from "../components/MangaGrid";
-import { Manga, Category } from "../types";
 import { colors } from "../styles/globalStyles";
 import { useCart } from "../context/CartContext";
-import { useCatalogQuery } from "../hooks/useCatalogQuery";
+import { useMangas } from "../hooks/useMangas"; // Hook correto do TanStack Query
+import { Produto } from "../services/catalogService"; // Tipagem real do backend
 
 export default function StoreScreen({ navigation }: any) {
-  const [selectedCategory, setSelectedCategory] = useState<Category>("Todos");
-  const { cartItemsCount, addToCart } = useCart();
-  const {
-    data: mangas = [],
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useCatalogQuery();
+  const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
 
-  const categories = useMemo<Category[]>(() => {
+  // Usamos o updateQuantity do novo CartContext que bate na API
+  const { cartItemsCount, updateQuantity } = useCart();
+
+  // Puxa os dados reais, passando página 0 e tamanho 20
+  const { data, isLoading, isError, refetch } = useMangas(0, 20);
+
+  // O backend retorna paginação, então precisamos extrair o array de dentro de page_items
+  const mangas = data?.page_items || [];
+
+  const categories = useMemo<string[]>(() => {
     const uniqueCategories = Array.from(
-      new Set(mangas.map((manga) => manga.genre)),
+      // O backend Java retorna "categoria", não "genre"
+      new Set(mangas.map((manga) => manga.categoria)),
     );
     return ["Todos", ...uniqueCategories];
   }, [mangas]);
@@ -38,15 +41,21 @@ export default function StoreScreen({ navigation }: any) {
     if (selectedCategory === "Todos") {
       return mangas;
     }
-    return mangas.filter((manga) => manga.genre === selectedCategory);
+    return mangas.filter((manga) => manga.categoria === selectedCategory);
   }, [selectedCategory, mangas]);
 
-  const handleMangaPress = (manga: Manga) => {
+  const handleMangaPress = (manga: Produto) => {
     navigation.navigate("MangaDetail", { manga });
   };
 
   const handleCartPress = () => {
     navigation.navigate("Cart");
+  };
+
+  // Função adaptadora para ligar o clique do botão ao método do novo CartContext
+  const handleAddToCart = (manga: Produto) => {
+    // Passamos o ID do produto e a quantidade 1 para o endpoint /carrinho/adicionar
+    updateQuantity(manga.id, 1);
   };
 
   return (
@@ -68,14 +77,14 @@ export default function StoreScreen({ navigation }: any) {
         ) : isError ? (
           <View style={styles.centered}>
             <Text style={styles.errorText}>Erro ao carregar o catálogo.</Text>
-            <Text style={styles.retryText} onPress={() => refetch()}>
-              Tentar novamente
-            </Text>
+            <TouchableOpacity onPress={() => refetch()}>
+              <Text style={styles.retryText}>Tentar novamente</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <MangaGrid
             mangas={filteredMangas}
-            onAddToCart={addToCart}
+            onAddToCart={handleAddToCart}
             onMangaClick={handleMangaPress}
           />
         )}

@@ -18,7 +18,10 @@ export function Header({ cartItemsCount, onCartPress }: HeaderProps) {
             style={{ width: 40, height: 40, resizeMode: "contain" }}
             source={require("../../assets/icon.png")}
           />
-          <Text style={styles.title}>Rei dos Piratas</Text>
+          {/* Adicionamos o numberOfLines={1} para segurança visual */}
+          <Text style={styles.title} numberOfLines={1}>
+            Rei dos Piratas
+          </Text>
         </View>
 
         <TouchableOpacity style={styles.cartButton} onPress={onCartPress}>
@@ -49,11 +52,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   titleContainer: {
+    flex: 1, // <--- ADICIONADO: Faz o container ocupar todo o espaço disponível no meio
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+    paddingRight: 12, // <--- ADICIONADO: Dá um respiro para não grudar no carrinho
   },
   title: {
+    flexShrink: 1, // <--- ADICIONADO: Permite que o texto encolha se a tela for pequena
     fontSize: 24,
     fontWeight: "bold",
     color: "#ffffff",
