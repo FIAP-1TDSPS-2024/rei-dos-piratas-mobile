@@ -1,33 +1,29 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
 
-const STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   AUTH_TOKEN: "@auth_token",
 };
 
-const getBaseURL = () => {
-  const debuggerHost =
-    Constants.expoConfig?.hostUri ??
-    Constants.manifest2?.extra?.expoGo?.debuggerHost;
-  const host = debuggerHost?.split(":")[0];
+// ESCOLHA APENAS UM BASE_URL E DEIXE OS OUTROS COMENTADOS:
 
-  if (host) {
-    return `http://${host}:8080`;
-  }
+// 1. Para testar no EMULADOR ANDROID (O 10.0.2.2 é o "localhost" que o emulador enxerga)
+// const CURRENT_BASE_URL = "http://10.0.2.2:8080";
 
-  // Fallback for web or production
-  return "http://localhost:8080";
-};
+// 2. Para testar no CELULAR FÍSICO (Troque pelo IP IPv4 do seu PC na rede Wi-Fi)
+// const CURRENT_BASE_URL = "http://192.168.1.15:8080";
+
+// 3. Para PRODUÇÃO / APRESENTAÇÃO (Azure)
+const CURRENT_BASE_URL = "https://api-rdp-rm561144.azurewebsites.net";
 
 const api = axios.create({
-  baseURL: getBaseURL(),
+  baseURL: CURRENT_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 15000,
 });
 
-// Interceptor to attach JWT token to requests
 api.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
@@ -39,5 +35,4 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-export { STORAGE_KEYS };
-export default api;
+export { api };
