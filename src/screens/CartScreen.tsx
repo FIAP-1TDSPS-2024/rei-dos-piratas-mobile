@@ -6,7 +6,8 @@ import { colors } from "../styles/globalStyles";
 import { useCart } from "../context/CartContext";
 
 export default function CartScreen({ navigation }: any) {
-  const { cartItems, updateQuantity, removeItem, checkout } = useCart();
+  // Removi o 'checkout' da desestruturação, ele não pertence mais a esta etapa
+  const { cartItems, updateQuantity, removeItem } = useCart();
 
   const handleUpdateQuantity = (id: string, quantity: number) => {
     updateQuantity(id, quantity);
@@ -17,12 +18,13 @@ export default function CartScreen({ navigation }: any) {
   };
 
   const handleCheckout = () => {
-    checkout();
-    navigation.navigate("Home");
+    // Redireciona para a nossa 6ª tela, garantindo os pontos de navegação e escopo
+    navigation.navigate("Checkout");
   };
 
   const handleClose = () => {
-    navigation.navigate("Home");
+    // Corrigido de 'Home' para 'Store', que é o nome correto da sua Tab de catálogo
+    navigation.navigate("Store");
   };
 
   return (
