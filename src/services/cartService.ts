@@ -14,25 +14,40 @@ export const cartService = {
     const response = await api.get("/carrinho");
     const data = response.data;
 
-    // Tratamento de Edge Cases na camada de serviço:
-    // Garante que o front sempre receba um array, independente da formatação do backend
-    if (Array.isArray(data)) return data;
-    if (data && Array.isArray(data.content)) return data.content; // Padrão de paginação do Spring
-    if (data && Array.isArray(data.itens)) return data.itens;
-    if (data && Array.isArray(data.items)) return data.items;
+    // O backend retorna um objeto Cart com uma lista `produtos_adicionados`
+    // Cada item dessa lista tem aninhado um `produto` e a `quantidade`
+    const itemsRaw = data?.produtos_adicionados || data?.produtosAdicionados;
+
+    if (Array.isArray(itemsRaw)) {
+      return itemsRaw.map((item: any): CartItem => {
+        const prod = item.produto;
+        return {
+          id: prod.id, // usamos o id do produto como chave para o carrinho na interface
+          produtoId: prod.id,
+          nome: prod.nome,
+          preco: prod.preco,
+          quantidade: item.quantidade,
+          enderecoImagem: prod.endereco_imagem || prod.enderecoImagem,
+        };
+      });
+    }
 
     // Se chegar qualquer lixo não mapeado, devolve carrinho vazio e evita o crash
     return [];
   },
 
   addItem: async (produtoId: number, quantidade: number) => {
-    const response = await api.put("/carrinho/adicionar", { produtoId, quantidade });
+    const response = await api.put("/carrinho/adicionar", { produto_id: produtoId, quantidade });
     return response.data;
   },
 
-  removeItem: async (produtoId: number) => {
-    // Alinhe com o Jonas para ele aceitar esse payload simples, e não aquele JSON de Cliente
-    const response = await api.put("/carrinho/remover", { produtoId });
+// No seu cartService.ts
+  removeItem: async (produtoId: number, quantidade: number) => {
+    // Mantemos o produto_id (snake_case) para bater com a configuração do Spring
+    const response = await api.put("/carrinho/remover", {
+      produto_id: produtoId,
+      quantidade: quantidade
+    });
     return response.data;
   },
 
