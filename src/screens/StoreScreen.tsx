@@ -20,8 +20,8 @@ import { Produto } from "../services/catalogService"; // Tipagem real do backend
 export default function StoreScreen({ navigation }: any) {
   const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
 
-  // Usamos o updateQuantity do novo CartContext que bate na API
-  const { cartItemsCount, updateQuantity } = useCart();
+  // CORREÇÃO: Usamos o addToCart (com alerta) em vez do incrementQuantity (silencioso)
+  const { cartItemsCount, addToCart } = useCart();
 
   // Puxa os dados reais, passando página 0 e tamanho 20
   const { data, isLoading, isError, refetch } = useMangas(0, 20);
@@ -29,7 +29,7 @@ export default function StoreScreen({ navigation }: any) {
   // O backend retorna paginação, então precisamos extrair o array de dentro de page_items
   const mangas = data?.page_items || [];
 
-  const categories = useMemo<string[]>(() => {
+  const categories = useMemo<any[]>(() => {
     const uniqueCategories = Array.from(
       // O backend Java retorna "categoria", não "genre"
       new Set(mangas.map((manga) => manga.categoria)),
@@ -52,10 +52,9 @@ export default function StoreScreen({ navigation }: any) {
     navigation.navigate("Cart");
   };
 
-  // Função adaptadora para ligar o clique do botão ao método do novo CartContext
   const handleAddToCart = (manga: Produto) => {
-    // Passamos o ID do produto e a quantidade 1 para o endpoint /carrinho/adicionar
-    updateQuantity(manga.id, 1);
+    // CORREÇÃO: Dispara a função que contém o Alert de sucesso
+    addToCart(manga.id);
   };
 
   return (
@@ -83,9 +82,9 @@ export default function StoreScreen({ navigation }: any) {
           </View>
         ) : (
           <MangaGrid
-            mangas={filteredMangas}
-            onAddToCart={handleAddToCart}
-            onMangaClick={handleMangaPress}
+            mangas={filteredMangas as any}
+            onAddToCart={handleAddToCart as any}
+            onMangaClick={handleMangaPress as any}
           />
         )}
       </View>

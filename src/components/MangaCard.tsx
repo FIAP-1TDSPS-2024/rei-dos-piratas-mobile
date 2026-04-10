@@ -37,7 +37,7 @@ export function MangaCard({
     >
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: manga.imageUrl }}
+          source={{ uri: manga.endereco_imagem }}
           style={styles.image}
           contentFit="cover"
           placeholder={require("../../assets/icon.png")}
@@ -49,7 +49,7 @@ export function MangaCard({
               <Text style={styles.badgeText}>Novo</Text>
             </View>
           )}
-          {manga.originalPrice && (
+          {manga.preco_original && (
             <View style={[styles.badge, styles.badgeOnSale]}>
               <Text style={styles.badgeText}>Oferta</Text>
             </View>
@@ -63,24 +63,24 @@ export function MangaCard({
 
       <View style={styles.content}>
         <Text style={styles.title} numberOfLines={2}>
-          {manga.title}
+          {manga.nome}
         </Text>
         <Text style={styles.author} numberOfLines={1}>
-          {manga.author}
+          {manga.autor}
         </Text>
 
         <View style={styles.priceContainer}>
           <Text
             style={{
               ...styles.price,
-              ...(manga.originalPrice ? styles.priceOnSale : {}),
+              ...(manga.preco_original ? styles.priceOnSale : {}),
             }}
           >
-            R$ {manga.price.toFixed(2)}
+            R$ {Number(manga.preco || 0).toFixed(2)}
           </Text>
-          {manga.originalPrice && (
+          {manga.preco_original && (
             <Text style={styles.originalPrice}>
-              R$ {manga.originalPrice.toFixed(2)}
+              R$ {Number(manga.preco_original || 0).toFixed(2)}
             </Text>
           )}
         </View>

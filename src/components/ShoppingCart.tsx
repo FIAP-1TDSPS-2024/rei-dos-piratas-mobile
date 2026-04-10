@@ -10,27 +10,29 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import { CartItem } from "../types";
+import { CartItem } from "../services/cartService";
 import { colors } from "../styles/globalStyles";
 
 interface ShoppingCartProps {
   cartItems: CartItem[];
-  onUpdateQuantity: (id: string, quantity: number) => void;
-  onRemoveItem: (id: string) => void;
+  onIncrement: (id: number) => void;
+  onDecrement: (id: number) => void;
+  onRemoveItem: (produtoId: number, quantidadeTotal: number) => void;
   onCheckout: () => void;
   onClose: () => void;
 }
 
 export function ShoppingCart({
-  cartItems = [], // <-- O FIX ESTÁ AQUI. Se vier undefined, vira []
-  onUpdateQuantity,
+  cartItems = [],
+  onIncrement,
+  onDecrement,
   onRemoveItem,
   onCheckout,
   onClose,
 }: ShoppingCartProps) {
 
   const total = cartItems.reduce(
-    (sum, item) => sum + item.manga.price * item.quantity,
+    (sum, item) => sum + item.preco * item.quantidade,
     0
   );
 
@@ -54,32 +56,38 @@ export function ShoppingCart({
   const renderCartItem: ListRenderItem<CartItem> = ({ item }) => (
     <View style={styles.cartItem}>
       <Image
-        source={{ uri: item.manga.imageUrl }}
+        source={{ uri: item.endereco_imagem || item.enderecoImagem }}
         style={styles.itemImage}
         contentFit="cover"
+        placeholder={require("../../assets/adaptive-icon.png")}
       />
 
       <View style={styles.itemDetails}>
         <Text style={styles.itemTitle} numberOfLines={2}>
-          {item.manga.title}
+          {item.nome}
         </Text>
-        <Text style={styles.itemAuthor}>{item.manga.author}</Text>
-        <Text style={styles.itemPrice}>R$ {item.manga.price.toFixed(2)}</Text>
+        <Text style={styles.itemPrice}>R$ {item.preco.toFixed(2)}</Text>
       </View>
 
       <View style={styles.quantityContainer}>
         <TouchableOpacity
-          style={styles.quantityButton}
-          onPress={() => onUpdateQuantity(item.manga.id, item.quantity - 1)}
+          style={[
+            styles.quantityButton,
+            item.quantidade <= 1 && { opacity: 0.3 }
+          ]}
+          onPress={() => onDecrement(item.id)}
+          disabled={item.quantidade <= 1}
+          accessibilityLabel={`Diminuir quantidade de ${item.nome}`}
         >
           <Ionicons name="remove" size={16} color={colors.gray600} />
         </TouchableOpacity>
 
-        <Text style={styles.quantityText}>{item.quantity}</Text>
+        <Text style={styles.quantityText}>{item.quantidade}</Text>
 
         <TouchableOpacity
           style={styles.quantityButton}
-          onPress={() => onUpdateQuantity(item.manga.id, item.quantity + 1)}
+          onPress={() => onIncrement(item.id)}
+          accessibilityLabel={`Aumentar quantidade de ${item.nome}`}
         >
           <Ionicons name="add" size={16} color={colors.gray600} />
         </TouchableOpacity>
@@ -87,7 +95,8 @@ export function ShoppingCart({
 
       <TouchableOpacity
         style={styles.removeButton}
-        onPress={() => onRemoveItem(item.manga.id)}
+        onPress={() => onRemoveItem(item.id, item.quantidade)}
+        accessibilityLabel={`Remover todos os itens de ${item.nome}`}
       >
         <Ionicons name="trash" size={16} color={colors.danger} />
       </TouchableOpacity>
@@ -113,7 +122,7 @@ export function ShoppingCart({
           <FlatList
             data={cartItems}
             renderItem={renderCartItem}
-            keyExtractor={(item) => item.manga.id}
+            keyExtractor={(item) => String(item.id)}
             style={styles.list}
             showsVerticalScrollIndicator={false}
           />
