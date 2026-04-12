@@ -160,9 +160,11 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.gray200,
   },
   title: {
+    flex: 1,
     fontSize: 24,
     fontWeight: "bold",
     color: colors.gray800,
+    paddingRight: 4,
   },
   list: {
     flex: 1,
