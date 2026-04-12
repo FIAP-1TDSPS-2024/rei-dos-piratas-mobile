@@ -44,7 +44,7 @@ export default function CheckoutScreen() {
 
       Alert.alert(
         "Sucesso!",
-        "A tua encomenda foi realizada com sucesso. Prepara-te para a leitura!",
+        "A tua encomenda foi realizada com sucesso! Obrigado por comprar no Rei dos Piratas.",
         [
           {
             text: "OK",

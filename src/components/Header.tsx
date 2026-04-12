@@ -52,14 +52,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   titleContainer: {
-    flex: 1, // <--- ADICIONADO: Faz o container ocupar todo o espaço disponível no meio
+    flex: 1, //
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    paddingRight: 12, // <--- ADICIONADO: Dá um respiro para não grudar no carrinho
+    paddingRight: 12,
   },
   title: {
-    flexShrink: 1, // <--- ADICIONADO: Permite que o texto encolha se a tela for pequena
+    flexShrink: 1,
     fontSize: 24,
     fontWeight: "bold",
     color: "#ffffff",
