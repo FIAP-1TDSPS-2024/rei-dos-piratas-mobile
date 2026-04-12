@@ -120,11 +120,12 @@ Para garantir a consistência financeira e de estoque, implementamos um fluxo r�
 3.  **Iniciar Projeto:**
     
     Bash
-
-## Vídeo do projeto
-https://youtu.be/AJstJzzFkGM
     
     ```
     # Limpando cache para garantir carregamento limpo de assets
     npx expo start -c
     ```
+
+
+## Vídeo do projeto
+https://youtu.be/AJstJzzFkGM
