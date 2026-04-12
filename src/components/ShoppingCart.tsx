@@ -11,7 +11,8 @@ import {
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { CartItem } from "../services/cartService";
-import { colors } from "../styles/globalStyles";
+// 1. Importa o hook do tema que criamos
+import { useTheme } from "../context/ThemeContext";
 
 interface ShoppingCartProps {
   cartItems: CartItem[];
@@ -31,6 +32,9 @@ export function ShoppingCart({
   onClose,
 }: ShoppingCartProps) {
 
+  // 2. Chama as cores dinâmicas e a função de trocar o tema
+  const { colors, isDark, toggleTheme } = useTheme();
+
   const total = cartItems.reduce(
     (sum, item) => sum + item.preco * item.quantidade,
     0
@@ -41,20 +45,14 @@ export function ShoppingCart({
       "Finalizar Compra",
       `Total: R$ ${total.toFixed(2)}\n\nDeseja finalizar a compra?`,
       [
-        {
-          text: "Cancelar",
-          style: "cancel",
-        },
-        {
-          text: "Confirmar",
-          onPress: onCheckout,
-        },
+        { text: "Cancelar", style: "cancel" },
+        { text: "Confirmar", onPress: onCheckout },
       ]
     );
   };
 
   const renderCartItem: ListRenderItem<CartItem> = ({ item }) => (
-    <View style={styles.cartItem}>
+    <View style={[styles.cartItem, { backgroundColor: colors.surface }]}>
       <Image
         source={{ uri: item.endereco_imagem || item.enderecoImagem }}
         style={styles.itemImage}
@@ -63,33 +61,41 @@ export function ShoppingCart({
       />
 
       <View style={styles.itemDetails}>
-        <Text style={styles.itemTitle} numberOfLines={2}>
+        <Text style={[styles.itemTitle, { color: colors.text }]} numberOfLines={2}>
           {item.nome}
         </Text>
-        <Text style={styles.itemPrice}>R$ {item.preco.toFixed(2)}</Text>
+        <Text style={[styles.itemPrice, { color: colors.success }]}>
+          R$ {item.preco.toFixed(2)}
+        </Text>
       </View>
 
       <View style={styles.quantityContainer}>
         <TouchableOpacity
           style={[
             styles.quantityButton,
+            { backgroundColor: isDark ? colors.border : "#f3f4f6" }, // Fundo dinâmico para o botão
             item.quantidade <= 1 && { opacity: 0.3 }
           ]}
           onPress={() => onDecrement(item.id)}
           disabled={item.quantidade <= 1}
           accessibilityLabel={`Diminuir quantidade de ${item.nome}`}
         >
-          <Ionicons name="remove" size={16} color={colors.gray600} />
+          <Ionicons name="remove" size={16} color={colors.textSecondary} />
         </TouchableOpacity>
 
-        <Text style={styles.quantityText}>{item.quantidade}</Text>
+        <Text style={[styles.quantityText, { color: colors.text }]}>
+          {item.quantidade}
+        </Text>
 
         <TouchableOpacity
-          style={styles.quantityButton}
+          style={[
+            styles.quantityButton,
+            { backgroundColor: isDark ? colors.border : "#f3f4f6" }
+          ]}
           onPress={() => onIncrement(item.id)}
           accessibilityLabel={`Aumentar quantidade de ${item.nome}`}
         >
-          <Ionicons name="add" size={16} color={colors.gray600} />
+          <Ionicons name="add" size={16} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -98,24 +104,33 @@ export function ShoppingCart({
         onPress={() => onRemoveItem(item.id, item.quantidade)}
         accessibilityLabel={`Remover todos os itens de ${item.nome}`}
       >
-        <Ionicons name="trash" size={16} color={colors.danger} />
+        <Ionicons name="trash" size={18} color={colors.danger} />
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Carrinho</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+
+        {/* Botão de Tema Integrado no Cabeçalho */}
+        <TouchableOpacity onPress={toggleTheme} style={styles.themeButton}>
+          <Ionicons name={isDark ? "sunny" : "moon"} size={22} color={colors.text} />
+        </TouchableOpacity>
+
+        <Text style={[styles.title, { color: colors.text }]}>Carrinho</Text>
+
         <TouchableOpacity onPress={onClose}>
-          <Ionicons name="close" size={24} color={colors.gray700} />
+          <Ionicons name="close" size={26} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
       {cartItems.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="bag-outline" size={64} color={colors.gray400} />
-          <Text style={styles.emptyText}>Seu carrinho está vazio</Text>
+          <Ionicons name="bag-outline" size={64} color={colors.textSecondary} />
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+            Seu carrinho está vazio
+          </Text>
         </View>
       ) : (
         <>
@@ -127,14 +142,16 @@ export function ShoppingCart({
             showsVerticalScrollIndicator={false}
           />
 
-          <View style={styles.footer}>
+          <View style={[styles.footer, { borderTopColor: colors.border }]}>
             <View style={styles.totalContainer}>
-              <Text style={styles.totalLabel}>Total:</Text>
-              <Text style={styles.totalAmount}>R$ {total.toFixed(2)}</Text>
+              <Text style={[styles.totalLabel, { color: colors.text }]}>Total:</Text>
+              <Text style={[styles.totalAmount, { color: colors.success }]}>
+                R$ {total.toFixed(2)}
+              </Text>
             </View>
 
             <TouchableOpacity
-              style={styles.checkoutButton}
+              style={[styles.checkoutButton, { backgroundColor: colors.primary }]}
               onPress={handleCheckout}
             >
               <Text style={styles.checkoutButtonText}>Finalizar Compra</Text>
@@ -149,21 +166,20 @@ export function ShoppingCart({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+  },
+  themeButton: {
+    marginRight: 12,
   },
   title: {
     flex: 1,
     fontSize: 24,
     fontWeight: "bold",
-    color: colors.gray800,
     paddingRight: 4,
   },
   list: {
@@ -174,14 +190,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
-    backgroundColor: "#ffffff",
     borderRadius: 12,
     marginBottom: 12,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -198,18 +210,11 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: colors.gray800,
-    marginBottom: 4,
-  },
-  itemAuthor: {
-    fontSize: 14,
-    color: colors.gray500,
     marginBottom: 4,
   },
   itemPrice: {
     fontSize: 16,
     fontWeight: "bold",
-    color: colors.success,
   },
   quantityContainer: {
     flexDirection: "row",
@@ -220,14 +225,12 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.gray100,
     justifyContent: "center",
     alignItems: "center",
   },
   quantityText: {
     fontSize: 16,
     fontWeight: "600",
-    color: colors.gray800,
     marginHorizontal: 12,
     minWidth: 24,
     textAlign: "center",
@@ -243,14 +246,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    color: colors.gray500,
     textAlign: "center",
     marginTop: 16,
   },
   footer: {
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: colors.gray200,
   },
   totalContainer: {
     flexDirection: "row",
@@ -261,15 +262,12 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: 18,
     fontWeight: "600",
-    color: colors.gray800,
   },
   totalAmount: {
     fontSize: 24,
     fontWeight: "bold",
-    color: colors.success,
   },
   checkoutButton: {
-    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",

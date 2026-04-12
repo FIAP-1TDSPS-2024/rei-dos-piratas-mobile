@@ -15,8 +15,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "../styles/globalStyles";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 interface ProfileUpdateForm {
   name: string;
@@ -26,6 +26,7 @@ interface ProfileUpdateForm {
 
 export default function ProfileScreen() {
   const { user, loading, logout, updateProfile } = useAuth();
+  const { colors, isDark } = useTheme();
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -63,17 +64,17 @@ export default function ProfileScreen() {
 
   if (loading || !user) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Carregando...</Text>
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Carregando...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardContainer}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -86,24 +87,24 @@ export default function ProfileScreen() {
             keyboardShouldPersistTaps="handled"
           >
             {/* Header do usuário logado */}
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: colors.surface }]}>
               <View style={styles.avatarContainer}>
                 <Ionicons
                   name="person-circle"
                   size={80}
                   color={colors.primary}
                 />
-                <View style={styles.onlineIndicator} />
+                <View style={[styles.onlineIndicator, { borderColor: colors.surface }]} />
               </View>
-              <Text style={styles.welcomeText}>Bem-vindo!</Text>
-              <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.userEmail}>{user.email}</Text>
+              <Text style={[styles.welcomeText, { color: colors.textSecondary }]}>Bem-vindo!</Text>
+              <Text style={[styles.userName, { color: colors.text }]}>{user.name}</Text>
+              <Text style={[styles.userEmail, { color: colors.textSecondary }]}>{user.email}</Text>
             </View>
 
             {/* Informações do perfil */}
-            <View style={styles.form}>
+            <View style={[styles.form, { backgroundColor: colors.surface }]}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Informações do Perfil</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Informações do Perfil</Text>
                 <TouchableOpacity
                   onPress={() => setIsEditing(!isEditing)}
                   style={styles.editButton}
@@ -117,54 +118,67 @@ export default function ProfileScreen() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Nome Completo *</Text>
+                <Text style={[styles.label, { color: colors.text }]}>Nome Completo *</Text>
                 <TextInput
-                  style={[styles.input, !isEditing && styles.inputDisabled]}
+                  style={[
+                    styles.input,
+                    { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" },
+                    !isEditing && [styles.inputDisabled, { backgroundColor: isDark ? colors.border : "#f3f4f6", color: colors.textSecondary }]
+                  ]}
                   value={profileForm.name}
                   onChangeText={(value) =>
                     setProfileForm((prev) => ({ ...prev, name: value }))
                   }
                   placeholder="Digite seu nome completo"
-                  placeholderTextColor={colors.gray400}
+                  placeholderTextColor={colors.textSecondary}
                   editable={isEditing}
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Email</Text>
+                <Text style={[styles.label, { color: colors.text }]}>Email</Text>
                 <TextInput
-                  style={[styles.input, styles.inputDisabled]}
+                   style={[
+                    styles.input,
+                    { borderColor: colors.border, color: colors.textSecondary, backgroundColor: isDark ? colors.background : "#ffffff" },
+                    styles.inputDisabled, { backgroundColor: isDark ? colors.border : "#f3f4f6" }
+                  ]}
                   value={user.email}
                   editable={false}
-                  placeholderTextColor={colors.gray400}
+                  placeholderTextColor={colors.textSecondary}
                 />
-                <Text style={styles.helpText}>
+                <Text style={[styles.helpText, { color: colors.textSecondary }]}>
                   * O email não pode ser alterado
                 </Text>
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Telefone</Text>
+                <Text style={[styles.label, { color: colors.text }]}>Telefone</Text>
                 <TextInput
-                  style={[styles.input, !isEditing && styles.inputDisabled]}
+                   style={[
+                    styles.input,
+                    { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" },
+                    !isEditing && [styles.inputDisabled, { backgroundColor: isDark ? colors.border : "#f3f4f6", color: colors.textSecondary }]
+                  ]}
                   value={profileForm.phone}
                   onChangeText={(value) =>
                     setProfileForm((prev) => ({ ...prev, phone: value }))
                   }
                   placeholder="Digite seu telefone"
                   keyboardType="phone-pad"
-                  placeholderTextColor={colors.gray400}
+                  placeholderTextColor={colors.textSecondary}
                   editable={isEditing}
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Endereço</Text>
+                <Text style={[styles.label, { color: colors.text }]}>Endereço</Text>
                 <TextInput
                   style={[
                     styles.input,
                     styles.textArea,
-                    !isEditing && styles.inputDisabled,
+                    { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" },
+                    !isEditing && [styles.inputDisabled, { backgroundColor: isDark ? colors.border : "#f3f4f6", color: colors.textSecondary }]
                   ]}
                   value={profileForm.address}
                   onChangeText={(value) =>
@@ -173,7 +187,7 @@ export default function ProfileScreen() {
                   placeholder="Digite seu endereço completo"
                   multiline
                   numberOfLines={3}
-                  placeholderTextColor={colors.gray400}
+                  placeholderTextColor={colors.textSecondary}
                   editable={isEditing}
                 />
               </View>
@@ -181,7 +195,7 @@ export default function ProfileScreen() {
               {isEditing && (
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity
-                    style={styles.saveButton}
+                    style={[styles.saveButton, { backgroundColor: colors.primary }]}
                     onPress={handleUpdateProfile}
                   >
                     <Ionicons name="save" size={20} color="#ffffff" />
@@ -189,7 +203,7 @@ export default function ProfileScreen() {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={styles.cancelButton}
+                    style={[styles.cancelButton, { backgroundColor: isDark ? colors.border : "#f3f4f6" }]}
                     onPress={() => {
                       setIsEditing(false);
                       // Resetar formulário
@@ -200,8 +214,8 @@ export default function ProfileScreen() {
                       });
                     }}
                   >
-                    <Ionicons name="close" size={20} color={colors.gray600} />
-                    <Text style={styles.cancelButtonText}>Cancelar</Text>
+                    <Ionicons name="close" size={20} color={colors.textSecondary} />
+                    <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Cancelar</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -214,11 +228,11 @@ export default function ProfileScreen() {
             </View>
 
             {/* Informações da conta */}
-            <View style={styles.accountInfo}>
-              <Text style={styles.accountInfoTitle}>Informações da Conta</Text>
+            <View style={[styles.accountInfo, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.accountInfoTitle, { color: colors.text }]}>Informações da Conta</Text>
               <View style={styles.accountInfoItem}>
-                <Ionicons name="calendar" size={16} color={colors.gray500} />
-                <Text style={styles.accountInfoText}>
+                <Ionicons name="calendar" size={16} color={colors.textSecondary} />
+                <Text style={[styles.accountInfoText, { color: colors.textSecondary }]}>
                   Membro desde{" "}
                   {new Date(user.createdAt).toLocaleDateString("pt-BR")}
                 </Text>
@@ -234,7 +248,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.light,
   },
   keyboardContainer: {
     flex: 1,
@@ -251,12 +264,10 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: colors.gray600,
   },
   header: {
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#ffffff",
     marginBottom: 20,
   },
   avatarContainer: {
@@ -270,24 +281,20 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: colors.success,
+    backgroundColor: "#10B981", // mantive fixo pois é a cor de 'online'
     borderWidth: 3,
-    borderColor: "#ffffff",
   },
   welcomeText: {
     fontSize: 16,
-    color: colors.gray600,
     marginBottom: 4,
   },
   userName: {
     fontSize: 24,
     fontWeight: "bold",
-    color: colors.gray800,
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 14,
-    color: colors.gray500,
   },
   sectionHeader: {
     flexDirection: "row",
@@ -298,14 +305,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: colors.gray800,
   },
   editButton: {
     padding: 8,
   },
   form: {
     padding: 20,
-    backgroundColor: "#ffffff",
     margin: 16,
     borderRadius: 12,
     shadowColor: "#000",
@@ -323,26 +328,20 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: "600",
-    color: colors.gray700,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.gray300,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: colors.gray800,
-    backgroundColor: "#ffffff",
   },
   inputDisabled: {
-    backgroundColor: colors.gray100,
-    color: colors.gray500,
+    // cores geridas no componente
   },
   helpText: {
     fontSize: 12,
-    color: colors.gray500,
     marginTop: 4,
     fontStyle: "italic",
   },
@@ -355,7 +354,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   saveButton: {
-    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 8,
     flexDirection: "row",
@@ -369,7 +367,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   cancelButton: {
-    backgroundColor: colors.gray100,
     paddingVertical: 16,
     borderRadius: 8,
     flexDirection: "row",
@@ -378,7 +375,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   cancelButtonText: {
-    color: colors.gray600,
     fontSize: 16,
     fontWeight: "600",
   },
@@ -387,7 +383,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.danger,
+    borderColor: "#EF4444", // fixo pra manter a cor de alerta de perigo (vermelho)
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
@@ -395,12 +391,11 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   logoutButtonText: {
-    color: colors.danger,
+    color: "#EF4444", // fixo pra manter a cor de alerta de perigo (vermelho)
     fontSize: 16,
     fontWeight: "600",
   },
   accountInfo: {
-    backgroundColor: "#ffffff",
     margin: 16,
     marginTop: 0,
     borderRadius: 12,
@@ -417,7 +412,6 @@ const styles = StyleSheet.create({
   accountInfoTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: colors.gray800,
     marginBottom: 12,
   },
   accountInfoItem: {
@@ -427,6 +421,5 @@ const styles = StyleSheet.create({
   },
   accountInfoText: {
     fontSize: 14,
-    color: colors.gray600,
   },
 });
