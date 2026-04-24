@@ -9,8 +9,7 @@ import {
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { Manga } from "../types";
-// 1. Importando o hook do tema
-import { useTheme } from "../context/ThemeContext";
+import { colors } from "../styles/globalStyles";
 
 interface MangaCardProps {
   manga: Manga;
@@ -26,16 +25,13 @@ export function MangaCard({
   onAddToCart,
   onMangaClick,
 }: MangaCardProps) {
-  // 2. Extraindo as cores dinâmicas
-  const { colors } = useTheme();
-
   const handleAddToCart = () => {
     onAddToCart(manga);
   };
 
   return (
     <TouchableOpacity
-      style={[styles.card, { backgroundColor: colors.surface }]}
+      style={styles.card}
       onPress={() => onMangaClick(manga)}
       activeOpacity={0.7}
     >
@@ -49,44 +45,41 @@ export function MangaCard({
 
         <View style={styles.badgeContainer}>
           {manga.isNew && (
-            <View style={[styles.badge, { backgroundColor: colors.primary }]}>
+            <View style={[styles.badge, styles.badgeNew]}>
               <Text style={styles.badgeText}>Novo</Text>
             </View>
           )}
           {manga.preco_original && (
-            <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+            <View style={[styles.badge, styles.badgeOnSale]}>
               <Text style={styles.badgeText}>Oferta</Text>
             </View>
           )}
         </View>
 
-        <TouchableOpacity
-          style={[styles.addButton, { backgroundColor: colors.primary }]}
-          onPress={handleAddToCart}
-        >
+        <TouchableOpacity style={styles.addButton} onPress={handleAddToCart}>
           <Ionicons name="add" size={20} color="#ffffff" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
+        <Text style={styles.title} numberOfLines={2}>
           {manga.nome}
         </Text>
-        <Text style={[styles.author, { color: colors.textSecondary }]} numberOfLines={1}>
+        <Text style={styles.author} numberOfLines={1}>
           {manga.autor}
         </Text>
 
         <View style={styles.priceContainer}>
           <Text
-            style={[
-              styles.price,
-              { color: manga.preco_original ? colors.success : colors.text }
-            ]}
+            style={{
+              ...styles.price,
+              ...(manga.preco_original ? styles.priceOnSale : {}),
+            }}
           >
             R$ {Number(manga.preco || 0).toFixed(2)}
           </Text>
           {manga.preco_original && (
-            <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
+            <Text style={styles.originalPrice}>
               R$ {Number(manga.preco_original || 0).toFixed(2)}
             </Text>
           )}
@@ -99,6 +92,7 @@ export function MangaCard({
 const styles = StyleSheet.create({
   card: {
     width: cardWidth,
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     marginBottom: 16,
     shadowColor: "#000",
@@ -133,6 +127,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignSelf: "flex-start",
   },
+  badgeNew: {
+    backgroundColor: colors.primary,
+  },
+  badgeOnSale: {
+    backgroundColor: colors.danger,
+  },
   badgeText: {
     color: "#ffffff",
     fontSize: 10,
@@ -142,6 +142,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 8,
     right: 8,
+    backgroundColor: colors.primary,
     borderRadius: 20,
     width: 36,
     height: 36,
@@ -162,11 +163,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: "600",
+    color: colors.gray800,
     marginBottom: 4,
     lineHeight: 18,
   },
   author: {
     fontSize: 12,
+    color: colors.gray500,
     marginBottom: 6,
   },
   ratingContainer: {
@@ -177,6 +180,7 @@ const styles = StyleSheet.create({
   },
   rating: {
     fontSize: 12,
+    color: colors.gray600,
   },
   priceContainer: {
     flexDirection: "row",
@@ -187,8 +191,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  priceOnSale: {
+    color: colors.success,
+  },
   originalPrice: {
     fontSize: 12,
+    color: colors.gray400,
     textDecorationLine: "line-through",
   },
 });

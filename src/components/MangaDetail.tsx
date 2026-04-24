@@ -10,8 +10,7 @@ import {
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { Manga } from "../types";
-// 1. Importando o hook do tema
-import { useTheme } from "../context/ThemeContext";
+import { colors } from "../styles/globalStyles";
 
 interface MangaDetailProps {
   manga: Manga;
@@ -22,15 +21,12 @@ interface MangaDetailProps {
 const { height } = Dimensions.get("window");
 
 export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
-  // 2. Extraindo as cores dinâmicas
-  const { colors, isDark } = useTheme();
-
   const handleAddToCart = () => {
     onAddToCart(manga);
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.imageContainer}>
           <Image
@@ -46,12 +42,12 @@ export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
 
           <View style={styles.badgeContainer}>
             {manga.isNew && (
-              <View style={[styles.badge, { backgroundColor: colors.primary }]}>
+              <View style={[styles.badge, styles.badgeNew]}>
                 <Text style={styles.badgeText}>Novo</Text>
               </View>
             )}
             {manga.preco_original && (
-              <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+              <View style={[styles.badge, styles.badgeOnSale]}>
                 <Text style={styles.badgeText}>Oferta</Text>
               </View>
             )}
@@ -60,30 +56,30 @@ export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
 
         <View style={styles.content}>
           <View style={styles.headerSection}>
-            <Text style={[styles.title, { color: colors.text }]}>{manga.nome}</Text>
+            <Text style={styles.title}>{manga.nome}</Text>
 
-            {manga.autor && <Text style={[styles.author, { color: colors.textSecondary }]}>por {manga.autor}</Text>}
-            {manga.categoria && <Text style={[styles.genre, { color: colors.primary }]}>{manga.categoria}</Text>}
+            {manga.autor && <Text style={styles.author}>por {manga.autor}</Text>}
+            {manga.categoria && <Text style={styles.genre}>{manga.categoria}</Text>}
           </View>
 
           <View style={styles.priceSection}>
             <Text
-              style={[
-                styles.price,
-                { color: manga.preco_original ? colors.success : colors.text }
-              ]}
+              style={{
+                ...styles.price,
+                ...(manga.preco_original ? styles.priceOnSale : {}),
+              }}
             >
               R$ {Number(manga.preco || 0).toFixed(2)}
             </Text>
 
             {manga.preco_original && (
-              <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
+              <Text style={styles.originalPrice}>
                 R$ {Number(manga.preco_original || 0).toFixed(2)}
               </Text>
             )}
 
             {manga.preco_original && manga.preco && (
-              <View style={[styles.discountContainer, { backgroundColor: colors.danger }]}>
+              <View style={styles.discountContainer}>
                 <Text style={styles.discount}>
                   -
                   {Math.round(
@@ -99,33 +95,32 @@ export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
 
           {manga.descricao && (
             <View style={styles.descriptionSection}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Descrição</Text>
-              <Text style={[styles.description, { color: colors.textSecondary }]}>{manga.descricao}</Text>
+              <Text style={styles.sectionTitle}>Descrição</Text>
+              <Text style={styles.description}>{manga.descricao}</Text>
             </View>
           )}
 
           <View style={styles.featuresSection}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Características</Text>
+            <Text style={styles.sectionTitle}>Características</Text>
             <View style={styles.featureItem}>
               <Ionicons name="book" size={16} color={colors.primary} />
-              <Text style={[styles.featureText, { color: colors.textSecondary }]}>Formato: Físico</Text>
+              <Text style={styles.featureText}>Formato: Físico</Text>
             </View>
             <View style={styles.featureItem}>
               <Ionicons name="language" size={16} color={colors.primary} />
-              <Text style={[styles.featureText, { color: colors.textSecondary }]}>Idioma: Português</Text>
+              <Text style={styles.featureText}>Idioma: Português</Text>
             </View>
             <View style={styles.featureItem}>
               <Ionicons name="cube" size={16} color={colors.primary} />
-              <Text style={[styles.featureText, { color: colors.textSecondary }]}>Editora: Panini Comics</Text>
+              <Text style={styles.featureText}>Editora: Panini Comics</Text>
             </View>
           </View>
         </View>
       </ScrollView>
 
-      {/* Footer dinâmico */}
-      <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
+      <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.addToCartButton, { backgroundColor: colors.primary }]}
+          style={styles.addToCartButton}
           onPress={handleAddToCart}
         >
           <Ionicons name="bag-add" size={20} color="#ffffff" />
@@ -139,6 +134,7 @@ export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#ffffff",
   },
   imageContainer: {
     position: "relative",
@@ -171,6 +167,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignSelf: "flex-start",
   },
+  badgeNew: {
+    backgroundColor: colors.primary,
+  },
+  badgeOnSale: {
+    backgroundColor: colors.danger,
+  },
   badgeText: {
     color: "#ffffff",
     fontSize: 12,
@@ -183,15 +185,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
+    color: colors.gray800,
     marginBottom: 8,
     lineHeight: 34,
   },
   author: {
     fontSize: 16,
+    color: colors.gray600,
     marginBottom: 4,
   },
   genre: {
     fontSize: 14,
+    color: colors.primary,
     fontWeight: "500",
   },
   ratingSection: {
@@ -208,9 +213,11 @@ const styles = StyleSheet.create({
   rating: {
     fontSize: 18,
     fontWeight: "600",
+    color: colors.gray800,
   },
   reviewCount: {
     fontSize: 14,
+    color: colors.gray500,
   },
   priceSection: {
     flexDirection: "row",
@@ -222,11 +229,16 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "bold",
   },
+  priceOnSale: {
+    color: colors.success,
+  },
   originalPrice: {
     fontSize: 18,
+    color: colors.gray400,
     textDecorationLine: "line-through",
   },
   discountContainer: {
+    backgroundColor: colors.danger,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -245,10 +257,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
+    color: colors.gray800,
     marginBottom: 12,
   },
   description: {
     fontSize: 16,
+    color: colors.gray600,
     lineHeight: 24,
   },
   featureItem: {
@@ -259,12 +273,16 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 16,
+    color: colors.gray700,
   },
   footer: {
     padding: 20,
     borderTopWidth: 1,
+    borderTopColor: colors.gray200,
+    backgroundColor: "#ffffff",
   },
   addToCartButton: {
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 12,
     flexDirection: "row",
