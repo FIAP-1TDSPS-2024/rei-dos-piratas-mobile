@@ -1,34 +1,29 @@
-import React, { useCallback } from "react";
-import { StyleSheet } from "react-native";
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFocusEffect } from "@react-navigation/native";
-import { useQueryClient } from "@tanstack/react-query";
 import { ShoppingCart } from "../components/ShoppingCart";
 import { colors } from "../styles/globalStyles";
 import { useCart } from "../context/CartContext";
 
 export default function CartScreen({ navigation }: any) {
-  const {
-    cartItems,
-    incrementQuantity,
-    decrementQuantity,
-    removeItem
-  } = useCart();
+  // Removi o 'checkout' da desestruturação, ele não pertence mais a esta etapa
+  const { cartItems, updateQuantity, removeItem } = useCart();
 
-  const queryClient = useQueryClient();
+  const handleUpdateQuantity = (id: string, quantity: number) => {
+    updateQuantity(id, quantity);
+  };
 
-  // Força o refetch quando a tela ganha foco para garantir dados frescos
-  useFocusEffect(
-    useCallback(() => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-    }, [queryClient])
-  );
+  const handleRemoveItem = (id: string) => {
+    removeItem(id);
+  };
 
   const handleCheckout = () => {
+    // Redireciona para a nossa 6ª tela, garantindo os pontos de navegação e escopo
     navigation.navigate("Checkout");
   };
 
   const handleClose = () => {
+    // Corrigido de 'Home' para 'Store', que é o nome correto da sua Tab de catálogo
     navigation.navigate("Store");
   };
 
@@ -36,10 +31,8 @@ export default function CartScreen({ navigation }: any) {
     <SafeAreaView style={styles.container} edges={["top"]}>
       <ShoppingCart
         cartItems={cartItems}
-        // Passagem de referência direta: menos código, mais performance
-        onIncrement={incrementQuantity}
-        onDecrement={decrementQuantity}
-        onRemoveItem={removeItem}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
         onCheckout={handleCheckout}
         onClose={handleClose}
       />

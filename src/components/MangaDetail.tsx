@@ -30,10 +30,9 @@ export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: manga.endereco_imagem || manga.enderecoImagem }}
+            source={{ uri: manga.imageUrl }}
             style={styles.image}
             contentFit="cover"
-            placeholder={require("../../assets/adaptive-icon.png")}
           />
 
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -46,7 +45,7 @@ export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
                 <Text style={styles.badgeText}>Novo</Text>
               </View>
             )}
-            {manga.preco_original && (
+            {manga.originalPrice && (
               <View style={[styles.badge, styles.badgeOnSale]}>
                 <Text style={styles.badgeText}>Oferta</Text>
               </View>
@@ -56,36 +55,33 @@ export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
 
         <View style={styles.content}>
           <View style={styles.headerSection}>
-            <Text style={styles.title}>{manga.nome}</Text>
-
-            {manga.autor && <Text style={styles.author}>por {manga.autor}</Text>}
-            {manga.categoria && <Text style={styles.genre}>{manga.categoria}</Text>}
+            <Text style={styles.title}>{manga.title}</Text>
+            <Text style={styles.author}>por {manga.author}</Text>
+            <Text style={styles.genre}>{manga.genre}</Text>
           </View>
 
           <View style={styles.priceSection}>
             <Text
               style={{
                 ...styles.price,
-                ...(manga.preco_original ? styles.priceOnSale : {}),
+                ...(manga.originalPrice ? styles.priceOnSale : {}),
               }}
             >
-              R$ {Number(manga.preco || 0).toFixed(2)}
+              R$ {manga.price.toFixed(2)}
             </Text>
-
-            {manga.preco_original && (
+            {manga.originalPrice && (
               <Text style={styles.originalPrice}>
-                R$ {Number(manga.preco_original || 0).toFixed(2)}
+                R$ {manga.originalPrice.toFixed(2)}
               </Text>
             )}
-
-            {manga.preco_original && manga.preco && (
+            {manga.originalPrice && (
               <View style={styles.discountContainer}>
                 <Text style={styles.discount}>
                   -
                   {Math.round(
-                    (((manga.preco_original || 0) - (manga.preco || 0)) /
-                      (manga.preco_original || 1)) *
-                    100,
+                    ((manga.originalPrice - manga.price) /
+                      manga.originalPrice) *
+                      100,
                   )}
                   %
                 </Text>
@@ -93,10 +89,10 @@ export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
             )}
           </View>
 
-          {manga.descricao && (
+          {manga.description && (
             <View style={styles.descriptionSection}>
               <Text style={styles.sectionTitle}>Descrição</Text>
-              <Text style={styles.description}>{manga.descricao}</Text>
+              <Text style={styles.description}>{manga.description}</Text>
             </View>
           )}
 

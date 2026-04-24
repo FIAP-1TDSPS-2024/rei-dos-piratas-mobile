@@ -9,10 +9,8 @@ interface CartContextType {
   cartTotal: number;
   cartItemsCount: number;
   loading: boolean;
-  incrementQuantity: (produtoId: number) => void;
-  decrementQuantity: (produtoId: number) => void;
-  removeItem: (produtoId: number, quantidade: number) => void;
-  addToCart: (produtoId: number) => void;
+  updateQuantity: (produtoId: number, quantidade: number) => void;
+  removeItem: (produtoId: number) => void;
   clearCart: () => void;
   checkout: () => Promise<void>;
 }
@@ -21,104 +19,62 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn } = useAuth(); // Só busca dados se o cara estiver logado
 
+  // GET: Busca o carrinho da API
   const { data: cartItems = [], isLoading } = useQuery({
     queryKey: ["cart"],
     queryFn: cartService.getCart,
-    enabled: isLoggedIn,
+    enabled: isLoggedIn, // Previne requisições 403 (Unauthorized)
   });
 
-  // Tratamento de dados (Fonte de Verdade)
-  const rawCartItems = Array.isArray(cartItems) ? cartItems : [];
-  const safeCartItems = rawCartItems.reduce((acc: CartItem[], currentItem) => {
-    const existingItem = acc.find(item => item.id === currentItem.id);
-    if (existingItem) {
-      existingItem.quantidade += currentItem.quantidade;
-    } else {
-      acc.push({ ...currentItem });
-    }
-    return acc;
-  }, []);
-
-  // MUTATION 1: Adicionar a partir da loja (Com Alerta)
-  const addFromStoreMutation = useMutation({
-    mutationFn: (produtoId: number) => cartService.addItem(produtoId, 1),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-      Alert.alert("Sucesso", "Produto adicionado ao carrinho! 🛒");
-    },
-    onError: (error: any) => {
-      console.error("Erro API (Loja):", error?.response?.data || error.message);
-      Alert.alert("Erro", "Não foi possível adicionar o produto.");
-    },
-  });
-
-  // MUTATION 2: Incrementar dentro do carrinho (Silencioso)
-  const incrementMutation = useMutation({
-    mutationFn: (produtoId: number) => cartService.addItem(produtoId, 1),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-    },
-    onError: (error: any) => {
-      console.error("Erro API (Incremento):", error?.response?.data || error.message);
-      Alert.alert("Erro", "Falha ao atualizar a quantidade.");
-    },
-  });
-
-  // MUTATION 3: Decrementar ou Remover
-  const removeMutation = useMutation({
+  // PUT: Adicionar ou Atualizar quantidade
+  const addMutation = useMutation({
     mutationFn: ({ produtoId, quantidade }: { produtoId: number; quantidade: number }) =>
-      cartService.removeItem(produtoId, quantidade),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-    },
-    onError: (error: any) => {
-      console.error("Erro API (Remoção):", error?.response?.data || error.message);
-      Alert.alert("Erro", "Falha ao remover o item.");
-    }
+      cartService.addItem(produtoId, quantidade),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
+    onError: () => Alert.alert("Erro", "Não foi possível atualizar o carrinho."),
   });
 
-  const clearMutation = useMutation({
-    mutationFn: cartService.clearCart,
+  // PUT: Remover item
+  const removeMutation = useMutation({
+    mutationFn: (produtoId: number) => cartService.removeItem(produtoId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
   });
 
-  const checkoutMutation = useMutation({
-    mutationFn: cartService.checkout,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-      Alert.alert("Sucesso", "Compra finalizada!");
-    },
+  // PUT: Limpar tudo
+  const clearMutation = useMutation({
+    mutationFn: () => cartService.clearCart(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
   });
 
-  // --- ACTIONS ---
+  // PUT: Finalizar pedido
+  const checkoutMutation = useMutation({
+    mutationFn: () => cartService.checkout(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
+    onError: () => Alert.alert("Erro", "Falha ao finalizar o pedido na API."),
+  });
 
-  const addToCart = (produtoId: number) => {
-    addFromStoreMutation.mutate(produtoId);
+  // Helpers exportados para as telas usarem
+  const updateQuantity = (produtoId: number, quantidade: number) => {
+    addMutation.mutate({ produtoId, quantidade });
   };
 
-  const incrementQuantity = (produtoId: number) => {
-    incrementMutation.mutate(produtoId);
+  const removeItem = (produtoId: number) => {
+    removeMutation.mutate(produtoId);
   };
 
-  const decrementQuantity = (produtoId: number) => {
-    const item = safeCartItems.find(i => i.id === produtoId);
-    if (item && item.quantidade > 1) {
-      removeMutation.mutate({ produtoId, quantidade: 1 });
-    }
+  const clearCart = () => {
+    clearMutation.mutate();
   };
 
-  // Implementação corrigida sem as sobras de código
-  const removeItem = (produtoId: number, quantidadeTotal: number) => {
-    console.log(`[CartContext] Lixeira acionada: Removendo ${quantidadeTotal} do ID ${produtoId}`);
-
-    // Repassa a quantidade exata para o service
-    removeMutation.mutate({ produtoId, quantidade: quantidadeTotal });
+  const checkout = async () => {
+    await checkoutMutation.mutateAsync();
   };
 
-  const clearCart = () => clearMutation.mutate();
-  const checkout = async () => checkoutMutation.mutateAsync();
+  // BLINDAGEM DE INTERFACE
+  // Força a variável a ser um array válido antes do cálculo matemático.
+  const safeCartItems = Array.isArray(cartItems) ? cartItems : [];
 
   const cartTotal = safeCartItems.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
   const cartItemsCount = safeCartItems.reduce((acc, item) => acc + item.quantidade, 0);
@@ -126,13 +82,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   return (
     <CartContext.Provider
       value={{
-        cartItems: safeCartItems,
+        cartItems: safeCartItems, // Repassa o dado limpo e tratado para a tela
         cartTotal,
         cartItemsCount,
-        loading: isLoading,
-        addToCart,
-        incrementQuantity,
-        decrementQuantity,
+        loading: isLoading || addMutation.isPending || removeMutation.isPending || checkoutMutation.isPending,
+        updateQuantity,
         removeItem,
         clearCart,
         checkout,
