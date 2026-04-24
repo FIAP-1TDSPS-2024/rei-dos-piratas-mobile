@@ -1,104 +1,152 @@
-import React, { createContext, useContext, ReactNode } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { Alert } from "react-native";
-import { cartService, CartItem } from "../services/cartService";
-import { useAuth } from "./AuthContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Manga, CartItem } from "../types";
 
 interface CartContextType {
   cartItems: CartItem[];
-  cartTotal: number;
   cartItemsCount: number;
-  loading: boolean;
-  updateQuantity: (produtoId: number, quantidade: number) => void;
-  removeItem: (produtoId: number) => void;
-  clearCart: () => void;
-  checkout: () => Promise<void>;
+  isLoading: boolean;
+  addToCart: (manga: Manga) => void;
+  updateQuantity: (id: string, quantity: number) => void;
+  removeItem: (id: string) => void;
+  clearCart: () => Promise<void>;
+  checkout: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export function CartProvider({ children }: { children: ReactNode }) {
-  const queryClient = useQueryClient();
-  const { isLoggedIn } = useAuth(); // Só busca dados se o cara estiver logado
+interface CartProviderProps {
+  children: ReactNode;
+}
 
-  // GET: Busca o carrinho da API
-  const { data: cartItems = [], isLoading } = useQuery({
-    queryKey: ["cart"],
-    queryFn: cartService.getCart,
-    enabled: isLoggedIn, // Previne requisições 403 (Unauthorized)
-  });
+export function CartProvider({ children }: CartProviderProps) {
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // PUT: Adicionar ou Atualizar quantidade
-  const addMutation = useMutation({
-    mutationFn: ({ produtoId, quantidade }: { produtoId: number; quantidade: number }) =>
-      cartService.addItem(produtoId, quantidade),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
-    onError: () => Alert.alert("Erro", "Não foi possível atualizar o carrinho."),
-  });
+  const CART_STORAGE_KEY = "@cart_items";
 
-  // PUT: Remover item
-  const removeMutation = useMutation({
-    mutationFn: (produtoId: number) => cartService.removeItem(produtoId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
-  });
+  // Load cart items from AsyncStorage on app start
+  useEffect(() => {
+    loadCartItems();
+  }, []);
 
-  // PUT: Limpar tudo
-  const clearMutation = useMutation({
-    mutationFn: () => cartService.clearCart(),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
-  });
+  // Save cart items to AsyncStorage whenever cartItems changes
+  useEffect(() => {
+    if (!isLoading) {
+      saveCartItems();
+    }
+  }, [cartItems, isLoading]);
 
-  // PUT: Finalizar pedido
-  const checkoutMutation = useMutation({
-    mutationFn: () => cartService.checkout(),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
-    onError: () => Alert.alert("Erro", "Falha ao finalizar o pedido na API."),
-  });
-
-  // Helpers exportados para as telas usarem
-  const updateQuantity = (produtoId: number, quantidade: number) => {
-    addMutation.mutate({ produtoId, quantidade });
+  const loadCartItems = async () => {
+    try {
+      const savedCartItems = await AsyncStorage.getItem(CART_STORAGE_KEY);
+      if (savedCartItems) {
+        setCartItems(JSON.parse(savedCartItems));
+      }
+    } catch (error) {
+      console.error("Error loading cart items from storage:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const removeItem = (produtoId: number) => {
-    removeMutation.mutate(produtoId);
+  const saveCartItems = async () => {
+    try {
+      await AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    } catch (error) {
+      console.error("Error saving cart items to storage:", error);
+    }
   };
 
-  const clearCart = () => {
-    clearMutation.mutate();
-  };
-
-  const checkout = async () => {
-    await checkoutMutation.mutateAsync();
-  };
-
-  // BLINDAGEM DE INTERFACE
-  // Força a variável a ser um array válido antes do cálculo matemático.
-  const safeCartItems = Array.isArray(cartItems) ? cartItems : [];
-
-  const cartTotal = safeCartItems.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
-  const cartItemsCount = safeCartItems.reduce((acc, item) => acc + item.quantidade, 0);
-
-  return (
-    <CartContext.Provider
-      value={{
-        cartItems: safeCartItems, // Repassa o dado limpo e tratado para a tela
-        cartTotal,
-        cartItemsCount,
-        loading: isLoading || addMutation.isPending || removeMutation.isPending || checkoutMutation.isPending,
-        updateQuantity,
-        removeItem,
-        clearCart,
-        checkout,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+  const cartItemsCount = cartItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0
   );
+
+  const addToCart = (manga: Manga) => {
+    const existingItem = cartItems.find((item) => item.manga.id === manga.id);
+
+    if (existingItem) {
+      setCartItems((prev) =>
+        prev.map((item) =>
+          item.manga.id === manga.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      );
+    } else {
+      setCartItems((prev) => [...prev, { manga, quantity: 1 }]);
+    }
+
+    Alert.alert("Sucesso!", `${manga.title} foi adicionado ao carrinho.`, [
+      { text: "OK" },
+    ]);
+  };
+
+  const updateQuantity = (id: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeItem(id);
+      return;
+    }
+
+    setCartItems((prev) =>
+      prev.map((item) => (item.manga.id === id ? { ...item, quantity } : item))
+    );
+  };
+
+  const removeItem = (id: string) => {
+    setCartItems((prev) => prev.filter((item) => item.manga.id !== id));
+  };
+
+  const clearCart = async () => {
+    setCartItems([]);
+    try {
+      await AsyncStorage.removeItem(CART_STORAGE_KEY);
+    } catch (error) {
+      console.error("Error clearing cart from storage:", error);
+    }
+  };
+
+  const checkout = () => {
+    Alert.alert(
+      "Pedido Confirmado!",
+      "Seu pedido foi realizado com sucesso. Obrigado pela compra!",
+      [
+        {
+          text: "OK",
+          onPress: async () => {
+            await clearCart();
+          },
+        },
+      ]
+    );
+  };
+
+  const value: CartContextType = {
+    cartItems,
+    cartItemsCount,
+    isLoading,
+    addToCart,
+    updateQuantity,
+    removeItem,
+    clearCart,
+    checkout,
+  };
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {
   const context = useContext(CartContext);
-  if (!context) throw new Error("useCart must be used within a CartProvider");
+  if (context === undefined) {
+    throw new Error("useCart must be used within a CartProvider");
+  }
   return context;
 }

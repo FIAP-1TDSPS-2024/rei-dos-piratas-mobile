@@ -22,13 +22,12 @@ interface ShoppingCartProps {
 }
 
 export function ShoppingCart({
-  cartItems = [], // <-- O FIX ESTÁ AQUI. Se vier undefined, vira []
+  cartItems,
   onUpdateQuantity,
   onRemoveItem,
   onCheckout,
   onClose,
 }: ShoppingCartProps) {
-
   const total = cartItems.reduce(
     (sum, item) => sum + item.manga.price * item.quantity,
     0

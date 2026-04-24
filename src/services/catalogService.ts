@@ -1,4 +1,4 @@
-import { api } from "./api";
+import api from "./api";
 
 export type ProdutoCategoriaEnum =
   | "ACAO"
@@ -26,18 +26,31 @@ export interface Produto {
   peso: number;
 }
 
-export interface CatalogBackendResponse {
+interface CatalogBackendResponse {
   page_items: Produto[];
   page_number: number;
   number_of_pages: number;
-  total_elements?: number;
 }
 
+export interface CatalogResponse {
+  content: Produto[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
+/*
+TODO List
+autor
+preco_original
+categoria
+
+*/
+
 export const catalogService = {
-  getProducts: async (page = 0, size = 20): Promise<CatalogBackendResponse> => {
-    const response = await api.get<CatalogBackendResponse>("/produtos", {
-      params: { page, size }
-    });
-    return response.data;
+  getProducts: async (): Promise<Produto[]> => {
+    const response = await api.get<CatalogBackendResponse>("/produtos");
+    return response.data.page_items;
   },
 };
