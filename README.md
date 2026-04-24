@@ -10,13 +10,7 @@ Uma versão mobile da loja de mangás "Rei dos Piratas", agora integrada com bac
 -   **RM561144**: Jonas de Jesus Campos de Oliveira
     
 -   **RM559336**: Wendell Nascimento Dourado
-
     
-## 🎨 Protótipo e Design
-
-O projeto foi inteiramente baseado no protótipo de alta fidelidade desenvolvido no Figma, adaptando a experiência Web para os padrões de usabilidade Mobile:
-
--   **Link do Protótipo:** [Design do Figma - Ecommerce](https://www.figma.com/design/pgmGI02zKtZamVgnFrItvq/Ecommerce?node-id=0-1&p=f&t=gk1SJhmGEQxuU8ep-0)
 
 ## 🚀 Novidades da Sprint Atual (Integração Total)
 
