@@ -11,9 +11,6 @@ Uma versão mobile da loja de mangás "Rei dos Piratas", agora integrada com bac
 -   **RM559336**: Wendell Nascimento Dourado
     
 
-## Link do repositório 
-https://github.com/FIAP-1TDSPS-2024/rei-dos-piratas-mobile
-
 ----------
 
 ## 🎯 Descrição do Problema Escolhido
