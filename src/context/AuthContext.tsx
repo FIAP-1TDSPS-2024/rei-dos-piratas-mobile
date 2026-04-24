@@ -130,17 +130,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
       return true;
     } catch (error: any) {
-      // Aqui está a mágica da depuração de front-end:
-      if (error.response && error.response.data) {
-        console.error("Motivo exato da recusa do Java:", JSON.stringify(error.response.data, null, 2));
-
-        // Se o Spring Boot mandar uma mensagem amigável, mostramos pro usuário
-        const serverMessage = error.response.data.message || error.response.data.error || "Verifique o console para mais detalhes.";
-        Alert.alert("Erro de Validação", serverMessage);
-      } else {
-        console.error("Erro no cadastro:", error.message);
-        Alert.alert("Erro", "Falha ao conectar com o servidor.");
-      }
+      console.error("Erro no cadastro:", error);
+      const message =
+        error?.response?.data?.message ||
+        "Erro ao criar conta. Tente novamente.";
+      Alert.alert("Erro", message);
       return false;
     }
   };

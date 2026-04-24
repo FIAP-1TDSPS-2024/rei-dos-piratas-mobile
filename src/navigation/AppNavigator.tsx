@@ -12,12 +12,11 @@ import { colors } from "../styles/globalStyles";
 const queryClient = new QueryClient();
 
 // Screens
-import HomeScreen from "../screens/LoginScreen";
+import HomeScreen from "../screens/HomeScreen";
 import StoreScreen from "../screens/StoreScreen";
 import CartScreen from "../screens/CartScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import MangaDetailScreen from "../screens/MangaDetailScreen";
-import CheckoutScreen from "../screens/CheckoutScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -111,11 +110,6 @@ function AppContent() {
               options={{
                 title: "Detalhes do Mangá",
               }}
-            />
-            <Stack.Screen
-              name="Checkout"
-              component={CheckoutScreen}
-              options={{ title: "Finalizar Compra" }}
             />
           </>
         ) : (
