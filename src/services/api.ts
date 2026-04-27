@@ -2,7 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 
-const STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   AUTH_TOKEN: "@auth_token",
 };
 

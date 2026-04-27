@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../styles/globalStyles";
 import { useAuth } from "../context/AuthContext";
+import { brDateToIso, maskBrDate } from "../utils/date";
 
 type AuthMode = "login" | "register";
 
@@ -91,8 +92,17 @@ export default function HomeScreen() {
       return;
     }
 
-    if (registerForm.password.length < 6) {
-      Alert.alert("Erro", "A senha deve ter pelo menos 6 caracteres!");
+    if (registerForm.password.length < 8 || registerForm.password.length > 20) {
+      Alert.alert("Erro", "A senha deve ter entre 8 e 20 caracteres!");
+      return;
+    }
+
+    const isoBirthDate = brDateToIso(registerForm.birthDate);
+    if (!isoBirthDate) {
+      Alert.alert(
+        "Erro",
+        "Data de nascimento inv\u00e1lida! Use o formato DD/MM/AAAA.",
+      );
       return;
     }
 
@@ -100,7 +110,7 @@ export default function HomeScreen() {
       nome_completo: registerForm.name,
       email: registerForm.email,
       senha: registerForm.password,
-      data_nascimento: registerForm.birthDate,
+      data_nascimento: isoBirthDate,
       sexo: registerForm.gender,
       cpf: registerForm.cpf,
       celular: registerForm.phone,
@@ -289,7 +299,7 @@ export default function HomeScreen() {
 
                   <View style={styles.inputGroup}>
                     <Text style={styles.label}>
-                      Senha * (mínimo 6 caracteres)
+                      Senha * (entre 8 e 20 caracteres)
                     </Text>
                     <View style={styles.passwordContainer}>
                       <TextInput
@@ -304,6 +314,7 @@ export default function HomeScreen() {
                         placeholder="Digite sua senha"
                         secureTextEntry={!showPassword}
                         placeholderTextColor={colors.gray400}
+                        maxLength={20}
                       />
                       <TouchableOpacity
                         style={styles.passwordToggle}
@@ -333,6 +344,7 @@ export default function HomeScreen() {
                         placeholder="Confirme sua senha"
                         secureTextEntry={!showConfirmPassword}
                         placeholderTextColor={colors.gray400}
+                        maxLength={20}
                       />
                       <TouchableOpacity
                         style={styles.passwordToggle}
@@ -386,11 +398,13 @@ export default function HomeScreen() {
                       onChangeText={(value) =>
                         setRegisterForm((prev) => ({
                           ...prev,
-                          birthDate: value,
+                          birthDate: maskBrDate(value),
                         }))
                       }
-                      placeholder="AAAA-MM-DD"
+                      placeholder="DD/MM/AAAA"
                       placeholderTextColor={colors.gray400}
+                      keyboardType="numeric"
+                      maxLength={10}
                     />
                   </View>
 
