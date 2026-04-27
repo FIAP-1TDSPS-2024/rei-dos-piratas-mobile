@@ -30,7 +30,7 @@ export function ShoppingCart({
 }: ShoppingCartProps) {
   const total = cartItems.reduce(
     (sum, item) => sum + item.manga.price * item.quantity,
-    0
+    0,
   );
 
   const handleCheckout = () => {
@@ -46,23 +46,31 @@ export function ShoppingCart({
           text: "Confirmar",
           onPress: onCheckout,
         },
-      ]
+      ],
     );
   };
 
   const renderCartItem: ListRenderItem<CartItem> = ({ item }) => (
     <View style={styles.cartItem}>
-      <Image
-        source={{ uri: item.manga.imageUrl }}
-        style={styles.itemImage}
-        contentFit="cover"
-      />
+      {item.manga.imageUrl ? (
+        <Image
+          source={{ uri: item.manga.imageUrl }}
+          style={styles.itemImage}
+          contentFit="cover"
+        />
+      ) : (
+        <View style={[styles.itemImage, styles.itemImagePlaceholder]}>
+          <Ionicons name="book" size={24} color={colors.gray400} />
+        </View>
+      )}
 
       <View style={styles.itemDetails}>
         <Text style={styles.itemTitle} numberOfLines={2}>
           {item.manga.title}
         </Text>
-        <Text style={styles.itemAuthor}>{item.manga.author}</Text>
+        {item.manga.author ? (
+          <Text style={styles.itemAuthor}>{item.manga.author}</Text>
+        ) : null}
         <Text style={styles.itemPrice}>R$ {item.manga.price.toFixed(2)}</Text>
       </View>
 
@@ -178,6 +186,11 @@ const styles = StyleSheet.create({
     width: 60,
     height: 80,
     borderRadius: 8,
+  },
+  itemImagePlaceholder: {
+    backgroundColor: colors.gray100,
+    justifyContent: "center",
+    alignItems: "center",
   },
   itemDetails: {
     flex: 1,

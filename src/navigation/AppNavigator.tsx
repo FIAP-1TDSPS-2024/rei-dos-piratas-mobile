@@ -5,8 +5,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { CartProvider, useCart } from "../context/CartContext";
 import { AuthProvider, useAuth } from "../context/AuthContext";
+import { useCartQuery } from "../hooks/useCartQuery";
 import { colors } from "../styles/globalStyles";
 
 const queryClient = new QueryClient();
@@ -22,7 +22,9 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function CartIconWithBadge({ focused, color, size }: any) {
-  const { cartItemsCount } = useCart();
+  const { isLoggedIn } = useAuth();
+  const { data } = useCartQuery();
+  const cartItemsCount = isLoggedIn ? (data?.count ?? 0) : 0;
 
   return (
     <View>
@@ -128,9 +130,7 @@ export default function AppNavigator() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <CartProvider>
-          <AppContent />
-        </CartProvider>
+        <AppContent />
       </AuthProvider>
     </QueryClientProvider>
   );

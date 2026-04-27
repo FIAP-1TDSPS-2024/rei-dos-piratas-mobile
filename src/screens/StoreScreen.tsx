@@ -13,12 +13,16 @@ import { CategoryFilter } from "../components/CategoryFilter";
 import { MangaGrid } from "../components/MangaGrid";
 import { Manga, Category } from "../types";
 import { colors } from "../styles/globalStyles";
-import { useCart } from "../context/CartContext";
+import { useAddCartItemMutation, useCartQuery } from "../hooks/useCartQuery";
 import { useCatalogQuery } from "../hooks/useCatalogQuery";
 
 export default function StoreScreen({ navigation }: any) {
   const [selectedCategory, setSelectedCategory] = useState<Category>("Todos");
-  const { cartItemsCount, addToCart } = useCart();
+  const { data: cart } = useCartQuery();
+  const cartItemsCount = cart?.count ?? 0;
+  const addItemMutation = useAddCartItemMutation();
+  const addToCart = (manga: Manga) =>
+    addItemMutation.mutate({ mangaId: manga.id });
   const {
     data: mangas = [],
     isLoading,

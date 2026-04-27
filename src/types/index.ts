@@ -21,7 +21,9 @@ export interface Manga {
   isOnSale?: boolean;
 }
 
+export type CartManga = Pick<Manga, "id" | "title" | "price"> & Partial<Manga>;
+
 export interface CartItem {
-  manga: Manga;
+  manga: CartManga;
   quantity: number;
 }

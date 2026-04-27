@@ -3,14 +3,15 @@ import { View, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MangaDetail } from "../components/MangaDetail";
 import { colors } from "../styles/globalStyles";
-import { useCart } from "../context/CartContext";
+import { useAddCartItemMutation } from "../hooks/useCartQuery";
+import { Manga } from "../types";
 
 export default function MangaDetailScreen({ route, navigation }: any) {
   const { manga } = route.params;
-  const { addToCart } = useCart();
+  const addItemMutation = useAddCartItemMutation();
 
-  const handleAddToCart = (manga: any) => {
-    addToCart(manga);
+  const handleAddToCart = (manga: Manga) => {
+    addItemMutation.mutate({ mangaId: manga.id });
   };
 
   const handleClose = () => {

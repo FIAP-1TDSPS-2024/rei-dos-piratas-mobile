@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
 import { STORAGE_KEYS as API_STORAGE_KEYS } from "../services/api";
 import {
   AuthResponse,
@@ -80,6 +81,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const loginMutation = useLoginMutation();
   const registerMutation = useRegisterMutation();
+  const queryClient = useQueryClient();
 
   // Carregar dados do usuário ao inicializar
   useEffect(() => {
@@ -123,7 +125,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const register = async (data: RegisterRequest): Promise<boolean> => {
     try {
-      const response = await registerMutation.mutateAsync(data);
+      await registerMutation.mutateAsync(data);
+
+      const response = await loginMutation.mutateAsync({
+        email: data.email,
+        password: data.senha,
+      });
+
       const userProfile = await persistAuthData(response);
       setUser(userProfile);
       setIsLoggedIn(true);
@@ -145,6 +153,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         STORAGE_KEYS.CURRENT_USER,
         API_STORAGE_KEYS.AUTH_TOKEN,
       ]);
+      queryClient.removeQueries({ queryKey: ["cart"] });
       setUser(null);
       setIsLoggedIn(false);
     } catch (error) {
