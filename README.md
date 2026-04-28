@@ -1,6 +1,6 @@
-# Rei dos Piratas - Mobile App
+# Rei dos Piratas - Mobile App 🏴‍☠️
 
-Uma versão mobile da loja de mangás "Rei dos Piratas" desenvolvida com React Native e Expo.
+Uma versão mobile da loja de mangás "Rei dos Piratas", agora integrada com backend Java/Spring Boot e persistência real de dados.
 
 ## 👥 Integrantes do Grupo – CATECH
 
@@ -8,133 +8,102 @@ Uma versão mobile da loja de mangás "Rei dos Piratas" desenvolvida com React N
 - **RM561144**: Jonas de Jesus Campos de Oliveira
 - **RM559336**: Wendell Nascimento Dourado
 
-## Protótipo
+## Link do repositório
 
-[Design do Figma](https://www.figma.com/design/pgmGI02zKtZamVgnFrItvq/Ecommerce?node-id=0-1&p=f&t=gk1SJhmGEQxuU8ep-0)
+https://github.com/FIAP-1TDSPS-2024/rei-dos-piratas-mobile
 
-## Repositórios
+---
 
-#### Sprint 1
+## 🎯 Descrição do Problema Escolhido
 
-```
-https://github.com/FIAP-MOBILE-2025-Agosto/sc-1-catech
-```
+O mercado de e-commerce de nicho (como venda de mangás) frequentemente sofre com plataformas mobile não otimizadas que falham em garantir a sincronização em tempo real entre o cliente e o servidor. O problema central abordado neste projeto é a **inconsistência de dados do carrinho e falhas de segurança na sessão do usuário**. Em arquiteturas puramente client-side ou com integrações fracas, a falta de uma "fonte única de verdade" (Single Source of Truth) centralizada resulta em perda de itens no carrinho, conflitos de estoque durante o checkout e vulnerabilidades no acesso não autorizado aos dados da conta.
 
-#### Sprint 2
+## 💡 Descrição Geral da Solução Proposta
 
-```
-https://github.com/FIAP-MOBILE-2025-Agosto/2tdsps-challenge-sprint-2-catech-sprint-2
-```
+A solução desenvolvida é o aplicativo mobile "Rei dos Piratas", construído com React Native e integrado a uma API RESTful robusta em Java/Spring Boot. A arquitetura foi projetada com foco em **integridade de dados e segurança**:
 
-## Mocks
+1.  **Segurança e Autenticação:** Implementação de JWT (JSON Web Token) para garantir que apenas usuários autenticados e autorizados (`ROLE_CARRINHO_MANAGE`) acessem e modifiquem carrinhos, protegendo dados sensíveis.
+2.  **Sincronização e Estado:** Substituição de dados mockados e estado local frágil pelo **TanStack Query**, que gerencia o cache e mantém o aplicativo sincronizado em tempo real com o banco de dados do servidor.
+3.  **Tratamento de Edge Cases no Carrinho:** A lógica de negócio foi centralizada no backend. O app apenas orquestra as intenções do usuário (ex: subtrair item). O servidor valida os limites de estoque e executa remoções lógicas ou físicas automáticas caso a quantidade chegue a zero, evitando estados inconsistentes no banco.
 
-- [Catálogo](./src/utils/mockData.ts)
-- [Login/Cadastro utilizando Async Storage](./src/context/AuthContext.tsx)
-- [Carrinho utilizando Async Storage](./src/context/CartContext.tsx)
+---
 
-## 🚀 Tecnologias Utilizadas
+## 🎨 Protótipo e Design
 
-- **React Native** - Framework para desenvolvimento mobile
-- **Expo** - Plataforma para desenvolvimento e build
-- **TypeScript** - Para tipagem estática
-- **Expo Image** - Para carregamento otimizado de imagens
-- **Expo Vector Icons** - Para ícones
-- **React Navigation** - Para navegação (preparado para futuras implementações)
+O projeto foi inteiramente baseado no protótipo de alta fidelidade desenvolvido no Figma, adaptando a experiência Web para os padrões de usabilidade Mobile:
+
+- **Link do Protótipo:** [Design do Figma - Ecommerce](https://www.figma.com/design/pgmGI02zKtZamVgnFrItvq/Ecommerce?node-id=0-1&p=f&t=gk1SJhmGEQxuU8ep-0)
+
+## 🚀 Novidades da Sprint Atual (Integração Total)
+
+Nesta etapa, o projeto deixou de utilizar dados mockados e passou a consumir uma API REST completa, com foco em segurança, integridade de dados e experiência do usuário (UX).
+
+- **Integração Backend**: Consumo de API Java/Spring Boot com persistência em banco de dados.
+- **Gerenciamento de Estado**: Migração para **TanStack Query (React Query)**, garantindo cache inteligente e sincronização em tempo real.
+- **Segurança (JWT)**: Autenticação baseada em tokens com permissões de acesso (`ROLE_CARRINHO_MANAGE`).
+- **Lógica de Negócio Robusta**: O carrinho agora valida estoque e gerencia quantidades diretamente no servidor.
 
 ## 📱 Funcionalidades
 
-- ✅ Listagem de mangás com imagens
-- ✅ Filtros por categoria
-- ✅ Detalhes do produto
-- ✅ Carrinho de compras
-- ✅ Adicionar/remover itens do carrinho
-- ✅ Controle de quantidade
-- ✅ Cálculo de total
-- ✅ Interface responsiva
-- ✅ Design moderno e intuitivo
+- ✅ **Autenticação Real**: Login e persistência de sessão via JWT.
+- ✅ **Catálogo Dinâmico**: Listagem e filtros de mangás vindos da API.
+- ✅ **Carrinho Persistente**: Itens salvos no banco de dados do usuário, não mais no dispositivo.
+- ✅ **Controle de Quantidade**: Lógica de zeramento inteligente (subtração vira deleção quando a quantidade atinge 0 ou menos).
+- ✅ **Feedback Visual**: Alertas de sucesso ao adicionar itens e fallback de imagens (Mascote Pirata).
+
+## 🛠️ Tecnologias Utilizadas
+
+- **React Native / Expo** - Core do desenvolvimento mobile.
+- **TanStack Query (React Query)** - Sincronização e cache de dados.
+- **Axios** - Cliente HTTP para comunicação com a API.
+- **JWT (JSON Web Token)** - Segurança e autenticação.
+- **Expo Image** - Carregamento otimizado com suporte a `placeholder`.
+- **TypeScript** - Tipagem estática para evitar erros em tempo de execução.
 
 ## 🏗️ Estrutura do Projeto
 
+Plaintext
+
 ```
 src/
-├── components/          # Componentes reutilizáveis
-│   ├── CategoryFilter.tsx
-│   ├── Header.tsx
-│   ├── MangaCard.tsx
-│   ├── MangaDetail.tsx
-│   ├── MangaGrid.tsx
-│   └── ShoppingCart.tsx
-├── styles/             # Estilos globais
-│   └── globalStyles.ts
-├── types/              # Definições de tipos
-│   └── index.ts
-└── utils/              # Utilitários e dados mock
-    └── mockData.ts
+├── components/         # Componentes visuais (MangaDetail, ShoppingCart, etc)
+├── context/            # Gerenciamento de contexto (Auth e Cart)
+├── hooks/              # Custom Hooks para consumo de API (TanStack Query)
+├── services/           # Configuração do Axios e chamadas de endpoints
+├── navigation/         # Configuração das rotas (Stack Navigator)
+└── styles/             # Estilos globais e tokens de cores
+
 ```
 
-## 🛠️ Como Executar
+## 🔄 Fluxo de Integridade de Dados (Carrinho)
 
-1. **Instalar as dependências:**
+Para garantir a consistência financeira e de estoque, implementamos um fluxo rígido de remoção:
 
-   ```bash
-   npm install
-   ```
+1.  O Mobile envia o ID do produto e a quantidade total a ser removida via `PUT`.
+2.  O Backend Java recebe o DTO e processa a subtração.
+3.  Se a quantidade resultante for zero, o sistema executa um `.remove()` (Delete) físico no banco de dados, respeitando as constraints de `@Min(1)`.
 
-2. **Executar o projeto:**
+## 🛠️ Instruções Básicas para Execução do Projeto
 
-   ```bash
-   # Para iOS
-   npm run ios
+1.  **Instalar dependências:**
 
-   # Para Android
-   npm run android
+    Bash
 
-   # Para Web
-   npm run web
+    ```
+    npm install
 
-   # Para todos (abre o Expo DevTools)
-   npm start
-   ```
+    ```
 
-3. **Para testar em dispositivo físico:**
-   - Instale o app Expo Go no seu celular
-   - Escaneie o QR Code que aparece no terminal/browser
+2.  **Configurar API:** Certifique-se de que o backend Java está rodando. Atualize o `baseURL` no arquivo `src/services/api.ts` para o IP da sua máquina local de desenvolvimento (ex: `http://192.168.1.X:8080`).
+3.  **Iniciar Projeto:**
 
-## 📦 Scripts Disponíveis
+    Bash
 
-- `npm start` - Inicia o servidor Expo
-- `npm run android` - Executa no emulador Android
-- `npm run ios` - Executa no simulador iOS
-- `npm run web` - Executa no navegador web
+    ```
+    # Limpando cache para garantir carregamento limpo de assets
+    npx expo start -c
+    ```
 
-## 🎨 Design
+## Vídeo do projeto
 
-O app segue um design moderno com:
-
-- Paleta de cores consistente
-- Interface intuitiva e responsiva
-- Animações suaves
-- Componentes reutilizáveis
-- Suporte a diferentes tamanhos de tela
-
-## 🔄 Conversão do Projeto Web
-
-Este projeto foi convertido de uma versão web React/Vite para React Native + Expo, mantendo:
-
-- ✅ Toda a funcionalidade original
-- ✅ Layout adaptado para mobile
-- ✅ Componentes otimizados para performance
-- ✅ Estrutura de dados consistente
-- ✅ Experiência de usuário fluida
-
-## 📱 Compatibilidade
-
-- **iOS**: 13.0+
-- **Android**: API 21+ (Android 5.0)
-- **Web**: Todos os navegadores modernos
-
-## 🚀 Próximos Passos
-
-- [ ] Integração com API real
-- [ ] Sistema de autenticação
-- [ ] Sistema de Pagamento
+https://youtu.be/AJstJzzFkGM
