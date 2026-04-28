@@ -1,63 +1,52 @@
-import { api } from "./api";
+import api from "./api";
+import { Produto } from "./catalogService";
 
-export interface CartItem {
-  id: number;
-  produtoId: number;
-  nome: string;
-  preco: number;
+// --- Backend Types ---
+
+export interface CarrinhoItemBackend {
+  produto: Produto;
   quantidade: number;
-  enderecoImagem?: string;
 }
 
+export interface CarrinhoResponse {
+  id: number;
+  produtos_adicionados: CarrinhoItemBackend[];
+}
+
+export interface CartMutationRequest {
+  produto_id: number;
+  quantidade: number;
+}
+
+// --- API Calls ---
+
 export const cartService = {
-  getCart: async (): Promise<CartItem[]> => {
-    const response = await api.get("/carrinho");
-    const data = response.data;
-
-    // O backend retorna um objeto Cart com uma lista `produtos_adicionados`
-    // Cada item dessa lista tem aninhado um `produto` e a `quantidade`
-    const itemsRaw = data?.produtos_adicionados || data?.produtosAdicionados;
-
-    if (Array.isArray(itemsRaw)) {
-      return itemsRaw.map((item: any): CartItem => {
-        const prod = item.produto;
-        return {
-          id: prod.id, // usamos o id do produto como chave para o carrinho na interface
-          produtoId: prod.id,
-          nome: prod.nome,
-          preco: prod.preco,
-          quantidade: item.quantidade,
-          enderecoImagem: prod.endereco_imagem || prod.enderecoImagem,
-        };
-      });
-    }
-
-    // Se chegar qualquer lixo não mapeado, devolve carrinho vazio e evita o crash
-    return [];
-  },
-
-  addItem: async (produtoId: number, quantidade: number) => {
-    const response = await api.put("/carrinho/adicionar", { produto_id: produtoId, quantidade });
+  getCart: async (): Promise<CarrinhoResponse> => {
+    const response = await api.get<CarrinhoResponse>("/carrinho");
     return response.data;
   },
 
-// No seu cartService.ts
-  removeItem: async (produtoId: number, quantidade: number) => {
-    // Mantemos o produto_id (snake_case) para bater com a configuração do Spring
-    const response = await api.put("/carrinho/remover", {
-      produto_id: produtoId,
-      quantidade: quantidade
-    });
+  addItem: async (data: CartMutationRequest): Promise<CarrinhoResponse> => {
+    console.log("Adding item to cart:", data);
+    const response = await api.put<CarrinhoResponse>(
+      "/carrinho/adicionar",
+      data,
+    );
+    console.log("Add item response:", response.data);
     return response.data;
   },
 
-  clearCart: async () => {
-    const response = await api.put("/carrinho/limpar");
+  removeItem: async (data: CartMutationRequest): Promise<CarrinhoResponse> => {
+    console.log("Removing item from cart:", data);
+    const response = await api.put<CarrinhoResponse>("/carrinho/remover", data);
+    console.log("Remove item response:", response.data);
     return response.data;
   },
 
-  checkout: async () => {
-    const response = await api.put("/carrinho/finalizar");
+  clearCart: async (): Promise<CarrinhoResponse> => {
+    console.log("Clearing cart...");
+    const response = await api.put<CarrinhoResponse>("/carrinho/limpar", "");
+    console.log("Clear cart response:", response.data);
     return response.data;
-  }
+  },
 };

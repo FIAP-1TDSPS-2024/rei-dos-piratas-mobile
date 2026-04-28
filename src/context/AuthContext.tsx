@@ -5,8 +5,9 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
 import { STORAGE_KEYS as API_STORAGE_KEYS } from "../services/api";
 import {
   AuthResponse,
@@ -47,7 +48,7 @@ interface AuthProviderProps {
 }
 
 const STORAGE_KEYS = {
-  CURRENT_USER: "current_user", // Removido o '@' que era padrão do AsyncStorage
+  CURRENT_USER: "@current_user",
 };
 
 function mapClienteToUserProfile(cliente: Cliente): UserProfile {
@@ -65,9 +66,8 @@ function mapClienteToUserProfile(cliente: Cliente): UserProfile {
 
 async function persistAuthData(response: AuthResponse) {
   const userProfile = mapClienteToUserProfile(response.cliente);
-  // Salvando no SecureStore
-  await SecureStore.setItemAsync(API_STORAGE_KEYS.AUTH_TOKEN, response.token);
-  await SecureStore.setItemAsync(
+  await AsyncStorage.setItem(API_STORAGE_KEYS.AUTH_TOKEN, response.token);
+  await AsyncStorage.setItem(
     STORAGE_KEYS.CURRENT_USER,
     JSON.stringify(userProfile),
   );
@@ -81,17 +81,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const loginMutation = useLoginMutation();
   const registerMutation = useRegisterMutation();
+  const queryClient = useQueryClient();
 
+  // Carregar dados do usuário ao inicializar
   useEffect(() => {
     loadUserData();
   }, []);
 
   const loadUserData = async () => {
     try {
-      // Lendo do SecureStore
       const [userData, token] = await Promise.all([
-        SecureStore.getItemAsync(STORAGE_KEYS.CURRENT_USER),
-        SecureStore.getItemAsync(API_STORAGE_KEYS.AUTH_TOKEN),
+        AsyncStorage.getItem(STORAGE_KEYS.CURRENT_USER),
+        AsyncStorage.getItem(API_STORAGE_KEYS.AUTH_TOKEN),
       ]);
 
       if (userData && token) {
@@ -124,30 +125,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const register = async (data: RegisterRequest): Promise<boolean> => {
     try {
-      const response = await registerMutation.mutateAsync(data);
+      await registerMutation.mutateAsync(data);
+
+      const response = await loginMutation.mutateAsync({
+        email: data.email,
+        password: data.senha,
+      });
+
       const userProfile = await persistAuthData(response);
       setUser(userProfile);
       setIsLoggedIn(true);
       Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
       return true;
     } catch (error: any) {
-      if (error.response && error.response.data) {
-        console.error("Motivo exato da recusa do Java:", JSON.stringify(error.response.data, null, 2));
-        const serverMessage = error.response.data.message || error.response.data.error || "Verifique o console para mais detalhes.";
-        Alert.alert("Erro de Validação", serverMessage);
-      } else {
-        console.error("Erro no cadastro:", error.message);
-        Alert.alert("Erro", "Falha ao conectar com o servidor.");
-      }
+      console.error("Erro no cadastro:", error);
+      const message =
+        error?.response?.data?.message ||
+        "Erro ao criar conta. Tente novamente.";
+      Alert.alert("Erro", message);
       return false;
     }
   };
 
   const logout = async () => {
     try {
-      // SecureStore não tem multiRemove, então deletamos um por um
-      await SecureStore.deleteItemAsync(STORAGE_KEYS.CURRENT_USER);
-      await SecureStore.deleteItemAsync(API_STORAGE_KEYS.AUTH_TOKEN);
+      await AsyncStorage.multiRemove([
+        STORAGE_KEYS.CURRENT_USER,
+        API_STORAGE_KEYS.AUTH_TOKEN,
+      ]);
+      queryClient.removeQueries({ queryKey: ["cart"] });
       setUser(null);
       setIsLoggedIn(false);
     } catch (error) {
@@ -162,8 +168,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const updatedUser = { ...user, ...profileData };
       setUser(updatedUser);
-      // Atualizando no SecureStore
-      await SecureStore.setItemAsync(
+      await AsyncStorage.setItem(
         STORAGE_KEYS.CURRENT_USER,
         JSON.stringify(updatedUser),
       );

@@ -1,23 +1,17 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MangaDetail } from "../components/MangaDetail";
-// 1. Importando o hook
-import { useTheme } from "../context/ThemeContext";
-import { useCart } from "../context/CartContext";
+import { colors } from "../styles/globalStyles";
+import { useAddCartItemMutation } from "../hooks/useCartQuery";
+import { Manga } from "../types";
 
 export default function MangaDetailScreen({ route, navigation }: any) {
   const { manga } = route.params;
+  const addItemMutation = useAddCartItemMutation();
 
-  // 2. Extraindo as cores dinâmicas
-  const { colors } = useTheme();
-
-  // CORREÇÃO: Extrai a função addToCart (com alerta) do contexto
-  const { addToCart } = useCart();
-
-  const handleAddToCart = (mangaToAdd: any) => {
-    // CORREÇÃO: Repassa o ID do produto para a mutation correta
-    addToCart(mangaToAdd.id);
+  const handleAddToCart = (manga: Manga) => {
+    addItemMutation.mutate({ mangaId: manga.id });
   };
 
   const handleClose = () => {
@@ -25,8 +19,7 @@ export default function MangaDetailScreen({ route, navigation }: any) {
   };
 
   return (
-    // 3. Aplicando a cor de fundo dinamicamente
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["bottom"]}>
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
       <MangaDetail
         manga={manga}
         onAddToCart={handleAddToCart}
@@ -39,6 +32,6 @@ export default function MangaDetailScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: colors.light, <-- Removido do estático
+    backgroundColor: colors.light,
   },
 });

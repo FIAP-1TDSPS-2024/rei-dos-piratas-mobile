@@ -16,9 +16,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-// 1. Importando o hook de Tema
-import { useTheme } from "../context/ThemeContext";
+import { colors } from "../styles/globalStyles";
 import { useAuth } from "../context/AuthContext";
+import { brDateToIso, maskBrDate } from "../utils/date";
 
 type AuthMode = "login" | "register";
 
@@ -28,7 +28,6 @@ interface LoginForm {
 }
 
 interface RegisterForm {
-  userName: string;
   name: string;
   email: string;
   password: string;
@@ -41,8 +40,6 @@ interface RegisterForm {
 
 export default function HomeScreen() {
   const { loading, login, register } = useAuth();
-  // 2. Extraindo os dados do tema
-  const { colors, isDark, toggleTheme } = useTheme();
 
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [showPassword, setShowPassword] = useState(false);
@@ -54,7 +51,6 @@ export default function HomeScreen() {
   });
 
   const [registerForm, setRegisterForm] = useState<RegisterForm>({
-    userName: "",
     name: "",
     email: "",
     password: "",
@@ -79,7 +75,6 @@ export default function HomeScreen() {
 
   const handleRegister = async () => {
     if (
-      !registerForm.userName ||
       !registerForm.name ||
       !registerForm.email ||
       !registerForm.password ||
@@ -88,7 +83,7 @@ export default function HomeScreen() {
       !registerForm.gender ||
       !registerForm.phone
     ) {
-      Alert.alert("Erro", "Preencha todos os campos obrigatórios!");
+      Alert.alert("Erro", "Preencha os campos obrigatórios!");
       return;
     }
 
@@ -97,17 +92,25 @@ export default function HomeScreen() {
       return;
     }
 
-    if (registerForm.password.length < 6) {
-      Alert.alert("Erro", "A senha deve ter pelo menos 6 caracteres!");
+    if (registerForm.password.length < 8 || registerForm.password.length > 20) {
+      Alert.alert("Erro", "A senha deve ter entre 8 e 20 caracteres!");
+      return;
+    }
+
+    const isoBirthDate = brDateToIso(registerForm.birthDate);
+    if (!isoBirthDate) {
+      Alert.alert(
+        "Erro",
+        "Data de nascimento inv\u00e1lida! Use o formato DD/MM/AAAA.",
+      );
       return;
     }
 
     const success = await register({
-      user_name: registerForm.userName,
       nome_completo: registerForm.name,
       email: registerForm.email,
       senha: registerForm.password,
-      data_nascimento: registerForm.birthDate,
+      data_nascimento: isoBirthDate,
       sexo: registerForm.gender,
       cpf: registerForm.cpf,
       celular: registerForm.phone,
@@ -115,7 +118,6 @@ export default function HomeScreen() {
 
     if (success) {
       setRegisterForm({
-        userName: "",
         name: "",
         email: "",
         password: "",
@@ -130,21 +132,19 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor={colors.light} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Carregando...</Text>
+          <Text style={styles.loadingText}>Carregando...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* StatusBar que ajusta a cor do texto do relógio/bateria */}
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.background} />
-
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.light} />
       <KeyboardAvoidingView
         style={styles.keyboardContainer}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -156,19 +156,14 @@ export default function HomeScreen() {
             contentContainerStyle={styles.scrollContainer}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Header dinâmico */}
-            <View style={[styles.authHeader, { backgroundColor: colors.surface }]}>
-              {/* Botão de Trocar Tema */}
-              <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
-                <Ionicons name={isDark ? "sunny" : "moon"} size={24} color={colors.text} />
-              </TouchableOpacity>
-
+            {/* Header */}
+            <View style={styles.authHeader}>
               <Ionicons name="book" size={80} color={colors.primary} />
-              <Text style={[styles.appName, { color: colors.primary }]}>Rei dos Piratas</Text>
-              <Text style={[styles.authTitle, { color: colors.text }]}>
+              <Text style={styles.appName}>Rei dos Piratas</Text>
+              <Text style={styles.authTitle}>
                 {authMode === "login" ? "Entrar na Conta" : "Criar Conta"}
               </Text>
-              <Text style={[styles.authSubtitle, { color: colors.textSecondary }]}>
+              <Text style={styles.authSubtitle}>
                 {authMode === "login"
                   ? "Acesse sua conta para explorar a loja"
                   : "Crie sua conta para começar a comprar"}
@@ -176,19 +171,18 @@ export default function HomeScreen() {
             </View>
 
             {/* Tabs de Login/Cadastro */}
-            <View style={[styles.authTabs, { backgroundColor: isDark ? colors.border : "#f3f4f6" }]}>
+            <View style={styles.authTabs}>
               <TouchableOpacity
                 style={[
                   styles.authTab,
-                  authMode === "login" && [styles.authTabActive, { backgroundColor: colors.surface }],
+                  authMode === "login" && styles.authTabActive,
                 ]}
                 onPress={() => setAuthMode("login")}
               >
                 <Text
                   style={[
                     styles.authTabText,
-                    { color: colors.textSecondary },
-                    authMode === "login" && [styles.authTabTextActive, { color: colors.primary }],
+                    authMode === "login" && styles.authTabTextActive,
                   ]}
                 >
                   Login
@@ -197,15 +191,14 @@ export default function HomeScreen() {
               <TouchableOpacity
                 style={[
                   styles.authTab,
-                  authMode === "register" && [styles.authTabActive, { backgroundColor: colors.surface }],
+                  authMode === "register" && styles.authTabActive,
                 ]}
                 onPress={() => setAuthMode("register")}
               >
                 <Text
                   style={[
                     styles.authTabText,
-                    { color: colors.textSecondary },
-                    authMode === "register" && [styles.authTabTextActive, { color: colors.primary }],
+                    authMode === "register" && styles.authTabTextActive,
                   ]}
                 >
                   Cadastro
@@ -214,169 +207,232 @@ export default function HomeScreen() {
             </View>
 
             {/* Formulário */}
-            <View style={[styles.form, { backgroundColor: colors.surface }]}>
+            <View style={styles.form}>
               {authMode === "login" ? (
                 <>
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.label, { color: colors.text }]}>Email *</Text>
+                    <Text style={styles.label}>Email *</Text>
                     <TextInput
-                      style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" }]}
+                      style={styles.input}
                       value={loginForm.email}
-                      onChangeText={(value) => setLoginForm((prev) => ({ ...prev, email: value }))}
+                      onChangeText={(value) =>
+                        setLoginForm((prev) => ({ ...prev, email: value }))
+                      }
                       placeholder="Digite seu email"
                       keyboardType="email-address"
                       autoCapitalize="none"
-                      placeholderTextColor={colors.textSecondary}
+                      placeholderTextColor={colors.gray400}
                     />
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.label, { color: colors.text }]}>Senha *</Text>
+                    <Text style={styles.label}>Senha *</Text>
                     <View style={styles.passwordContainer}>
                       <TextInput
-                        style={[styles.passwordInput, { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" }]}
+                        style={styles.passwordInput}
                         value={loginForm.password}
-                        onChangeText={(value) => setLoginForm((prev) => ({ ...prev, password: value }))}
+                        onChangeText={(value) =>
+                          setLoginForm((prev) => ({
+                            ...prev,
+                            password: value,
+                          }))
+                        }
                         placeholder="Digite sua senha"
                         secureTextEntry={!showPassword}
-                        placeholderTextColor={colors.textSecondary}
+                        placeholderTextColor={colors.gray400}
                       />
                       <TouchableOpacity
                         style={styles.passwordToggle}
                         onPress={() => setShowPassword(!showPassword)}
                       >
-                        <Ionicons name={showPassword ? "eye-off" : "eye"} size={20} color={colors.textSecondary} />
+                        <Ionicons
+                          name={showPassword ? "eye-off" : "eye"}
+                          size={20}
+                          color={colors.gray500}
+                        />
                       </TouchableOpacity>
                     </View>
                   </View>
 
-                  <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.primary }]} onPress={handleLogin}>
-                    <Ionicons name="log-in" size={20} color="#ffffff" style={{ marginRight: 8 }} />
+                  <TouchableOpacity
+                    style={styles.primaryButton}
+                    onPress={handleLogin}
+                  >
+                    <Ionicons
+                      name="log-in"
+                      size={20}
+                      color="#ffffff"
+                      style={{ marginRight: 8 }}
+                    />
                     <Text style={styles.primaryButtonText}>Entrar</Text>
                   </TouchableOpacity>
                 </>
               ) : (
                 <>
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.label, { color: colors.text }]}>Username *</Text>
+                    <Text style={styles.label}>Nome Completo *</Text>
                     <TextInput
-                      style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" }]}
-                      value={registerForm.userName}
-                      onChangeText={(value) => setRegisterForm((prev) => ({ ...prev, userName: value }))}
-                      placeholder="Ex: luffy_pirata"
-                      autoCapitalize="none"
-                      placeholderTextColor={colors.textSecondary}
-                    />
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={[styles.label, { color: colors.text }]}>Nome Completo *</Text>
-                    <TextInput
-                      style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" }]}
+                      style={styles.input}
                       value={registerForm.name}
-                      onChangeText={(value) => setRegisterForm((prev) => ({ ...prev, name: value }))}
+                      onChangeText={(value) =>
+                        setRegisterForm((prev) => ({ ...prev, name: value }))
+                      }
                       placeholder="Digite seu nome completo"
-                      placeholderTextColor={colors.textSecondary}
+                      placeholderTextColor={colors.gray400}
                     />
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.label, { color: colors.text }]}>Email *</Text>
+                    <Text style={styles.label}>Email *</Text>
                     <TextInput
-                      style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" }]}
+                      style={styles.input}
                       value={registerForm.email}
-                      onChangeText={(value) => setRegisterForm((prev) => ({ ...prev, email: value }))}
+                      onChangeText={(value) =>
+                        setRegisterForm((prev) => ({ ...prev, email: value }))
+                      }
                       placeholder="Digite seu email"
                       keyboardType="email-address"
                       autoCapitalize="none"
-                      placeholderTextColor={colors.textSecondary}
+                      placeholderTextColor={colors.gray400}
                     />
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.label, { color: colors.text }]}>Senha * (mínimo 6 caracteres)</Text>
+                    <Text style={styles.label}>
+                      Senha * (entre 8 e 20 caracteres)
+                    </Text>
                     <View style={styles.passwordContainer}>
                       <TextInput
-                        style={[styles.passwordInput, { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" }]}
+                        style={styles.passwordInput}
                         value={registerForm.password}
-                        onChangeText={(value) => setRegisterForm((prev) => ({ ...prev, password: value }))}
+                        onChangeText={(value) =>
+                          setRegisterForm((prev) => ({
+                            ...prev,
+                            password: value,
+                          }))
+                        }
                         placeholder="Digite sua senha"
                         secureTextEntry={!showPassword}
-                        placeholderTextColor={colors.textSecondary}
+                        placeholderTextColor={colors.gray400}
+                        maxLength={20}
                       />
-                      <TouchableOpacity style={styles.passwordToggle} onPress={() => setShowPassword(!showPassword)}>
-                        <Ionicons name={showPassword ? "eye-off" : "eye"} size={20} color={colors.textSecondary} />
+                      <TouchableOpacity
+                        style={styles.passwordToggle}
+                        onPress={() => setShowPassword(!showPassword)}
+                      >
+                        <Ionicons
+                          name={showPassword ? "eye-off" : "eye"}
+                          size={20}
+                          color={colors.gray500}
+                        />
                       </TouchableOpacity>
                     </View>
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.label, { color: colors.text }]}>Confirmar Senha *</Text>
+                    <Text style={styles.label}>Confirmar Senha *</Text>
                     <View style={styles.passwordContainer}>
                       <TextInput
-                        style={[styles.passwordInput, { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" }]}
+                        style={styles.passwordInput}
                         value={registerForm.confirmPassword}
-                        onChangeText={(value) => setRegisterForm((prev) => ({ ...prev, confirmPassword: value }))}
+                        onChangeText={(value) =>
+                          setRegisterForm((prev) => ({
+                            ...prev,
+                            confirmPassword: value,
+                          }))
+                        }
                         placeholder="Confirme sua senha"
                         secureTextEntry={!showConfirmPassword}
-                        placeholderTextColor={colors.textSecondary}
+                        placeholderTextColor={colors.gray400}
+                        maxLength={20}
                       />
-                      <TouchableOpacity style={styles.passwordToggle} onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                        <Ionicons name={showConfirmPassword ? "eye-off" : "eye"} size={20} color={colors.textSecondary} />
+                      <TouchableOpacity
+                        style={styles.passwordToggle}
+                        onPress={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                      >
+                        <Ionicons
+                          name={showConfirmPassword ? "eye-off" : "eye"}
+                          size={20}
+                          color={colors.gray500}
+                        />
                       </TouchableOpacity>
                     </View>
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.label, { color: colors.text }]}>CPF *</Text>
+                    <Text style={styles.label}>CPF *</Text>
                     <TextInput
-                      style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" }]}
+                      style={styles.input}
                       value={registerForm.cpf}
-                      onChangeText={(value) => setRegisterForm((prev) => ({ ...prev, cpf: value }))}
+                      onChangeText={(value) =>
+                        setRegisterForm((prev) => ({ ...prev, cpf: value }))
+                      }
                       placeholder="Digite seu CPF (somente números)"
                       keyboardType="numeric"
                       maxLength={11}
-                      placeholderTextColor={colors.textSecondary}
+                      placeholderTextColor={colors.gray400}
                     />
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.label, { color: colors.text }]}>Celular *</Text>
+                    <Text style={styles.label}>Celular *</Text>
                     <TextInput
-                      style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" }]}
+                      style={styles.input}
                       value={registerForm.phone}
-                      onChangeText={(value) => setRegisterForm((prev) => ({ ...prev, phone: value }))}
+                      onChangeText={(value) =>
+                        setRegisterForm((prev) => ({ ...prev, phone: value }))
+                      }
                       placeholder="Digite seu celular"
                       keyboardType="phone-pad"
-                      placeholderTextColor={colors.textSecondary}
+                      placeholderTextColor={colors.gray400}
                     />
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.label, { color: colors.text }]}>Data de Nascimento *</Text>
+                    <Text style={styles.label}>Data de Nascimento *</Text>
                     <TextInput
-                      style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" }]}
+                      style={styles.input}
                       value={registerForm.birthDate}
-                      onChangeText={(value) => setRegisterForm((prev) => ({ ...prev, birthDate: value }))}
-                      placeholder="AAAA-MM-DD"
-                      placeholderTextColor={colors.textSecondary}
+                      onChangeText={(value) =>
+                        setRegisterForm((prev) => ({
+                          ...prev,
+                          birthDate: maskBrDate(value),
+                        }))
+                      }
+                      placeholder="DD/MM/AAAA"
+                      placeholderTextColor={colors.gray400}
+                      keyboardType="numeric"
+                      maxLength={10}
                     />
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.label, { color: colors.text }]}>Sexo *</Text>
+                    <Text style={styles.label}>Sexo *</Text>
                     <TextInput
-                      style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: isDark ? colors.background : "#ffffff" }]}
+                      style={styles.input}
                       value={registerForm.gender}
-                      onChangeText={(value) => setRegisterForm((prev) => ({ ...prev, gender: value }))}
+                      onChangeText={(value) =>
+                        setRegisterForm((prev) => ({ ...prev, gender: value }))
+                      }
                       placeholder="M ou F"
+                      maxLength={1}
                       autoCapitalize="characters"
-                      placeholderTextColor={colors.textSecondary}
+                      placeholderTextColor={colors.gray400}
                     />
                   </View>
 
-                  <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.primary }]} onPress={handleRegister}>
-                    <Ionicons name="person-add" size={20} color="#ffffff" style={{ marginRight: 8 }} />
+                  <TouchableOpacity
+                    style={styles.primaryButton}
+                    onPress={handleRegister}
+                  >
+                    <Ionicons
+                      name="person-add"
+                      size={20}
+                      color="#ffffff"
+                      style={{ marginRight: 8 }}
+                    />
                     <Text style={styles.primaryButtonText}>Criar Conta</Text>
                   </TouchableOpacity>
                 </>
@@ -392,6 +448,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.light,
   },
   keyboardContainer: {
     flex: 1,
@@ -408,38 +465,37 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
+    color: colors.gray600,
   },
   authHeader: {
-    position: "relative", // Necessário para ancorar o themeToggle
     alignItems: "center",
     padding: 20,
     paddingTop: 40,
+    backgroundColor: "#ffffff",
     marginBottom: 20,
-  },
-  themeToggle: {
-    position: "absolute",
-    top: 20,
-    right: 20,
-    padding: 8,
   },
   appName: {
     fontSize: 32,
     fontWeight: "bold",
+    color: colors.primary,
     marginTop: 12,
     marginBottom: 4,
   },
   authTitle: {
     fontSize: 22,
     fontWeight: "600",
+    color: colors.gray800,
     marginTop: 16,
     marginBottom: 8,
   },
   authSubtitle: {
     fontSize: 16,
+    color: colors.gray600,
     textAlign: "center",
   },
   authTabs: {
     flexDirection: "row",
+    backgroundColor: colors.gray100,
     marginHorizontal: 16,
     marginBottom: 20,
     borderRadius: 12,
@@ -452,8 +508,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   authTabActive: {
+    backgroundColor: "#ffffff",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -461,16 +521,21 @@ const styles = StyleSheet.create({
   authTabText: {
     fontSize: 16,
     fontWeight: "600",
+    color: colors.gray600,
   },
   authTabTextActive: {
-    // Cor é injetada no JSX
+    color: colors.primary,
   },
   form: {
     padding: 20,
+    backgroundColor: "#ffffff",
     margin: 16,
     borderRadius: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -481,25 +546,32 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: "600",
+    color: colors.gray700,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
+    borderColor: colors.gray300,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
+    color: colors.gray800,
+    backgroundColor: "#ffffff",
   },
   passwordContainer: {
     position: "relative",
   },
   passwordInput: {
     borderWidth: 1,
+    borderColor: colors.gray300,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingRight: 50,
     fontSize: 16,
+    color: colors.gray800,
+    backgroundColor: "#ffffff",
   },
   passwordToggle: {
     position: "absolute",
@@ -507,7 +579,12 @@ const styles = StyleSheet.create({
     top: "50%",
     transform: [{ translateY: -10 }],
   },
+  textArea: {
+    height: 80,
+    textAlignVertical: "top",
+  },
   primaryButton: {
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 8,
     flexDirection: "row",
@@ -516,7 +593,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   primaryButtonText: {
-    color: "#ffffff", // Sempre branco no botão primário
+    color: "#ffffff",
     fontSize: 18,
     fontWeight: "bold",
   },

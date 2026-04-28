@@ -1,66 +1,104 @@
-import React, { useCallback } from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import React from "react";
+import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFocusEffect } from "@react-navigation/native";
-import { useQueryClient } from "@tanstack/react-query";
 import { ShoppingCart } from "../components/ShoppingCart";
-import { useCart } from "../context/CartContext";
-// 1. Novos imports do tema e ícones
-import { useTheme } from "../context/ThemeContext";
-import { Ionicons } from "@expo/vector-icons";
+import { colors } from "../styles/globalStyles";
+import {
+  useAddCartItemMutation,
+  useCartQuery,
+  useClearCartMutation,
+  useRemoveCartItemMutation,
+} from "../hooks/useCartQuery";
 
 export default function CartScreen({ navigation }: any) {
-  const {
-    cartItems,
-    incrementQuantity,
-    decrementQuantity,
-    removeItem
-  } = useCart();
+  const { data, isLoading, isError, refetch } = useCartQuery();
+  const addItemMutation = useAddCartItemMutation();
+  const removeItemMutation = useRemoveCartItemMutation();
+  const clearCartMutation = useClearCartMutation();
 
-  // 2. Chamando o hook do tema
-  const { colors, isDark, toggleTheme } = useTheme();
+  const cartItems = data?.items ?? [];
 
-  const queryClient = useQueryClient();
+  const handleUpdateQuantity = (id: string, quantity: number) => {
+    const current = cartItems.find((item) => item.manga.id === id);
+    if (!current) return;
 
-  useFocusEffect(
-    useCallback(() => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-    }, [queryClient])
-  );
+    if (quantity <= 0) {
+      removeItemMutation.mutate({
+        mangaId: id,
+        quantidade: current.quantity,
+      });
+      return;
+    }
+
+    const diff = quantity - current.quantity;
+    if (diff === 0) return;
+
+    if (diff > 0) {
+      addItemMutation.mutate({ mangaId: id, quantidade: diff });
+    } else {
+      removeItemMutation.mutate({ mangaId: id, quantidade: -diff });
+    }
+  };
+
+  const handleRemoveItem = (id: string) => {
+    const current = cartItems.find((item) => item.manga.id === id);
+    if (!current) return;
+    removeItemMutation.mutate({
+      mangaId: id,
+      quantidade: current.quantity,
+    });
+  };
 
   const handleCheckout = () => {
-    navigation.navigate("Checkout");
+    // TODO: replace with /pedidos endpoint when available
+    clearCartMutation.mutate(undefined, {
+      onSuccess: () => {
+        Alert.alert(
+          "Pedido Confirmado!",
+          "Seu pedido foi realizado com sucesso. Obrigado pela compra!",
+          [{ text: "OK", onPress: () => navigation.navigate("Store") }],
+        );
+      },
+      onError: () => {
+        Alert.alert("Erro", "Não foi possível finalizar a compra.");
+      },
+    });
   };
 
   const handleClose = () => {
     navigation.navigate("Store");
   };
 
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    console.log("Error fetching cart:", data);
+    return (
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>Erro ao carregar o carrinho.</Text>
+          <Text style={styles.retryText} onPress={() => refetch()}>
+            Tentar novamente
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    // 3. Aplicando a cor de fundo dinâmica via array no style
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
-
-      {/* Botão de trocar tema (Flutuante no canto superior esquerdo) */}
-      <TouchableOpacity
-        style={[
-          styles.themeToggle,
-          { backgroundColor: colors.surface, borderColor: colors.border }
-        ]}
-        onPress={toggleTheme}
-        activeOpacity={0.7}
-      >
-        <Ionicons
-          name={isDark ? "sunny" : "moon"}
-          size={24}
-          color={colors.text}
-        />
-      </TouchableOpacity>
-
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <ShoppingCart
         cartItems={cartItems}
-        onIncrement={incrementQuantity}
-        onDecrement={decrementQuantity}
-        onRemoveItem={removeItem}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
         onCheckout={handleCheckout}
         onClose={handleClose}
       />
@@ -71,23 +109,21 @@ export default function CartScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: colors.light, <-- Removido, agora é dinâmico no JSX
+    backgroundColor: colors.light,
   },
-  themeToggle: {
-    position: "absolute",
-    top: 50, // Ajuste fino se ficar muito perto do notch
-    left: 20,
-    zIndex: 10,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  centered: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-  }
+  },
+  errorText: {
+    fontSize: 16,
+    color: colors.dark,
+    marginBottom: 8,
+  },
+  retryText: {
+    fontSize: 14,
+    color: colors.dark,
+    textDecorationLine: "underline",
+  },
 });
