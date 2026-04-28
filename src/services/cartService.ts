@@ -1,12 +1,11 @@
 import api from "./api";
+import { Produto } from "./catalogService";
 
 // --- Backend Types ---
 
 export interface CarrinhoItemBackend {
-  id: number;
-  nome: string;
+  produto: Produto;
   quantidade: number;
-  preco: number;
 }
 
 export interface CarrinhoResponse {

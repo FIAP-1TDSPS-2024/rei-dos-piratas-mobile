@@ -5,7 +5,8 @@ import {
   CarrinhoResponse,
   CartMutationRequest,
 } from "../services/cartService";
-import { CartItem } from "../types";
+import { Produto } from "../services/catalogService";
+import { CartItem, CartManga, Category } from "../types";
 
 export const CART_QUERY_KEY = ["cart"] as const;
 
@@ -21,13 +22,33 @@ export interface CartMutationVariables {
   quantidade?: number;
 }
 
+const CATEGORIA_LABEL: Record<string, Category> = {
+  ACAO: "Ação",
+  AVENTURA: "Aventura",
+  COMEDIA: "Comédia",
+  DRAMA: "Drama",
+  FICCAO_CIENTIFICA: "Ficção Científica",
+  FANTASIA: "Fantasia",
+  TERROR: "Terror",
+};
+
+function mapProdutoToCartManga(produto: Produto): CartManga {
+  return {
+    id: String(produto.id),
+    title: produto.nome,
+    author: produto.autor,
+    description: produto.descricao,
+    price: produto.preco,
+    originalPrice: produto.preco_original,
+    imageUrl: produto.endereco_imagem,
+    genre: CATEGORIA_LABEL[produto.categoria] ?? "Aventura",
+    isNew: produto.condicao === "NOVO",
+  };
+}
+
 function mapCarrinhoItem(item: CarrinhoItemBackend): CartItem {
   return {
-    manga: {
-      id: String(item.id),
-      title: item.nome,
-      price: item.preco,
-    },
+    manga: mapProdutoToCartManga(item.produto),
     quantity: item.quantidade,
   };
 }
