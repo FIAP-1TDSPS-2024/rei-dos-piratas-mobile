@@ -27,26 +27,20 @@ export const cartService = {
   },
 
   addItem: async (data: CartMutationRequest): Promise<CarrinhoResponse> => {
-    console.log("Adding item to cart:", data);
     const response = await api.put<CarrinhoResponse>(
       "/carrinho/adicionar",
       data,
     );
-    console.log("Add item response:", response.data);
     return response.data;
   },
 
   removeItem: async (data: CartMutationRequest): Promise<CarrinhoResponse> => {
-    console.log("Removing item from cart:", data);
     const response = await api.put<CarrinhoResponse>("/carrinho/remover", data);
-    console.log("Remove item response:", response.data);
     return response.data;
   },
 
   clearCart: async (): Promise<CarrinhoResponse> => {
-    console.log("Clearing cart...");
     const response = await api.put<CarrinhoResponse>("/carrinho/limpar", "");
-    console.log("Clear cart response:", response.data);
     return response.data;
   },
 };

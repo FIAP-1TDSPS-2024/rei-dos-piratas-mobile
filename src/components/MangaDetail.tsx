@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,11 +17,17 @@ interface MangaDetailProps {
   manga: Manga;
   onAddToCart: (manga: Manga) => void;
   onClose: () => void;
+  isAddingToCart?: boolean;
 }
 
 const { height } = Dimensions.get("window");
 
-export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
+export function MangaDetail({
+  manga,
+  onAddToCart,
+  onClose,
+  isAddingToCart = false,
+}: MangaDetailProps) {
   const handleAddToCart = () => {
     onAddToCart(manga);
   };
@@ -116,11 +123,21 @@ export function MangaDetail({ manga, onAddToCart, onClose }: MangaDetailProps) {
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.addToCartButton}
+          style={[
+            styles.addToCartButton,
+            isAddingToCart && styles.addToCartButtonDisabled,
+          ]}
           onPress={handleAddToCart}
+          disabled={isAddingToCart}
         >
-          <Ionicons name="bag-add" size={20} color="#ffffff" />
-          <Text style={styles.addToCartText}>Adicionar ao Carrinho</Text>
+          {isAddingToCart ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <>
+              <Ionicons name="bag-add" size={20} color="#ffffff" />
+              <Text style={styles.addToCartText}>Adicionar ao Carrinho</Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -290,5 +307,8 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  addToCartButtonDisabled: {
+    opacity: 0.5,
   },
 });

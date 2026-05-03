@@ -24,6 +24,7 @@ export default function MangaDetailScreen({ route, navigation }: any) {
         manga={manga}
         onAddToCart={handleAddToCart}
         onClose={handleClose}
+        isAddingToCart={addItemMutation.isPending}
       />
     </SafeAreaView>
   );

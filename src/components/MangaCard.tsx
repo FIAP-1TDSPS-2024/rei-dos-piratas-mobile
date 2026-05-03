@@ -13,22 +13,13 @@ import { colors } from "../styles/globalStyles";
 
 interface MangaCardProps {
   manga: Manga;
-  onAddToCart: (manga: Manga) => void;
   onMangaClick: (manga: Manga) => void;
 }
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2; // 2 cards per row with padding
 
-export function MangaCard({
-  manga,
-  onAddToCart,
-  onMangaClick,
-}: MangaCardProps) {
-  const handleAddToCart = () => {
-    onAddToCart(manga);
-  };
-
+export function MangaCard({ manga, onMangaClick }: MangaCardProps) {
   return (
     <TouchableOpacity
       style={styles.card}
@@ -55,10 +46,6 @@ export function MangaCard({
             </View>
           )}
         </View>
-
-        <TouchableOpacity style={styles.addButton} onPress={handleAddToCart}>
-          <Ionicons name="add" size={20} color="#ffffff" />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.content}>

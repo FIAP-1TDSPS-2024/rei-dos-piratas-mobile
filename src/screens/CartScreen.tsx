@@ -69,6 +69,18 @@ export default function CartScreen({ navigation }: any) {
     navigation.navigate("Store");
   };
 
+  const pendingMangaId = addItemMutation.isPending
+    ? (addItemMutation.variables?.mangaId ?? null)
+    : removeItemMutation.isPending
+      ? (removeItemMutation.variables?.mangaId ?? null)
+      : null;
+
+  const pendingAction: "add" | "remove" | null = addItemMutation.isPending
+    ? "add"
+    : removeItemMutation.isPending
+      ? "remove"
+      : null;
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container} edges={["top"]}>
@@ -80,7 +92,6 @@ export default function CartScreen({ navigation }: any) {
   }
 
   if (isError) {
-    console.log("Error fetching cart:", data);
     return (
       <SafeAreaView style={styles.container} edges={["top"]}>
         <View style={styles.centered}>
@@ -101,6 +112,9 @@ export default function CartScreen({ navigation }: any) {
         onRemoveItem={handleRemoveItem}
         onCheckout={handleCheckout}
         onClose={handleClose}
+        pendingMangaId={pendingMangaId}
+        pendingAction={pendingAction}
+        isCheckoutPending={clearCartMutation.isPending}
       />
     </SafeAreaView>
   );

@@ -7,11 +7,14 @@ import {
   StyleSheet,
   ListRenderItem,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { CartItem } from "../types";
 import { colors } from "../styles/globalStyles";
+
+type CartPendingAction = "add" | "remove" | null;
 
 interface ShoppingCartProps {
   cartItems: CartItem[];
@@ -19,6 +22,9 @@ interface ShoppingCartProps {
   onRemoveItem: (id: string) => void;
   onCheckout: () => void;
   onClose: () => void;
+  pendingMangaId?: string | null;
+  pendingAction?: CartPendingAction;
+  isCheckoutPending?: boolean;
 }
 
 export function ShoppingCart({
@@ -27,6 +33,9 @@ export function ShoppingCart({
   onRemoveItem,
   onCheckout,
   onClose,
+  pendingMangaId = null,
+  pendingAction = null,
+  isCheckoutPending = false,
 }: ShoppingCartProps) {
   const total = cartItems.reduce(
     (sum, item) => sum + item.manga.price * item.quantity,
@@ -50,56 +59,88 @@ export function ShoppingCart({
     );
   };
 
-  const renderCartItem: ListRenderItem<CartItem> = ({ item }) => (
-    <View style={styles.cartItem}>
-      {item.manga.imageUrl ? (
-        <Image
-          source={{ uri: item.manga.imageUrl }}
-          style={styles.itemImage}
-          contentFit="cover"
-        />
-      ) : (
-        <View style={[styles.itemImage, styles.itemImagePlaceholder]}>
-          <Ionicons name="book" size={24} color={colors.gray400} />
+  const renderCartItem: ListRenderItem<CartItem> = ({ item }) => {
+    const isRowPending = pendingMangaId === item.manga.id;
+    const showAddSpinner = isRowPending && pendingAction === "add";
+    const showRemoveSpinner = isRowPending && pendingAction === "remove";
+    const isQuantityDisabled = isRowPending;
+    const isTrashDisabled = isRowPending;
+
+    return (
+      <View style={styles.cartItem}>
+        {item.manga.imageUrl ? (
+          <Image
+            source={{ uri: item.manga.imageUrl }}
+            style={styles.itemImage}
+            contentFit="cover"
+          />
+        ) : (
+          <View style={[styles.itemImage, styles.itemImagePlaceholder]}>
+            <Ionicons name="book" size={24} color={colors.gray400} />
+          </View>
+        )}
+
+        <View style={styles.itemDetails}>
+          <Text style={styles.itemTitle} numberOfLines={2}>
+            {item.manga.title}
+          </Text>
+          {item.manga.author ? (
+            <Text style={styles.itemAuthor}>{item.manga.author}</Text>
+          ) : null}
+          <Text style={styles.itemPrice}>R$ {item.manga.price.toFixed(2)}</Text>
         </View>
-      )}
 
-      <View style={styles.itemDetails}>
-        <Text style={styles.itemTitle} numberOfLines={2}>
-          {item.manga.title}
-        </Text>
-        {item.manga.author ? (
-          <Text style={styles.itemAuthor}>{item.manga.author}</Text>
-        ) : null}
-        <Text style={styles.itemPrice}>R$ {item.manga.price.toFixed(2)}</Text>
-      </View>
+        <View style={styles.quantityContainer}>
+          <TouchableOpacity
+            style={[
+              styles.quantityButton,
+              isQuantityDisabled && styles.buttonDisabled,
+            ]}
+            onPress={() => onUpdateQuantity(item.manga.id, item.quantity - 1)}
+            disabled={isQuantityDisabled}
+          >
+            {showRemoveSpinner ? (
+              <ActivityIndicator size="small" color={colors.gray600} />
+            ) : (
+              <Ionicons name="remove" size={16} color={colors.gray600} />
+            )}
+          </TouchableOpacity>
 
-      <View style={styles.quantityContainer}>
+          <Text style={styles.quantityText}>{item.quantity}</Text>
+
+          <TouchableOpacity
+            style={[
+              styles.quantityButton,
+              isQuantityDisabled && styles.buttonDisabled,
+            ]}
+            onPress={() => onUpdateQuantity(item.manga.id, item.quantity + 1)}
+            disabled={isQuantityDisabled}
+          >
+            {showAddSpinner ? (
+              <ActivityIndicator size="small" color={colors.gray600} />
+            ) : (
+              <Ionicons name="add" size={16} color={colors.gray600} />
+            )}
+          </TouchableOpacity>
+        </View>
+
         <TouchableOpacity
-          style={styles.quantityButton}
-          onPress={() => onUpdateQuantity(item.manga.id, item.quantity - 1)}
+          style={[
+            styles.removeButton,
+            isTrashDisabled && styles.buttonDisabled,
+          ]}
+          onPress={() => onRemoveItem(item.manga.id)}
+          disabled={isTrashDisabled}
         >
-          <Ionicons name="remove" size={16} color={colors.gray600} />
-        </TouchableOpacity>
-
-        <Text style={styles.quantityText}>{item.quantity}</Text>
-
-        <TouchableOpacity
-          style={styles.quantityButton}
-          onPress={() => onUpdateQuantity(item.manga.id, item.quantity + 1)}
-        >
-          <Ionicons name="add" size={16} color={colors.gray600} />
+          {showRemoveSpinner ? (
+            <ActivityIndicator size="small" color={colors.danger} />
+          ) : (
+            <Ionicons name="trash" size={16} color={colors.danger} />
+          )}
         </TouchableOpacity>
       </View>
-
-      <TouchableOpacity
-        style={styles.removeButton}
-        onPress={() => onRemoveItem(item.manga.id)}
-      >
-        <Ionicons name="trash" size={16} color={colors.danger} />
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -132,10 +173,18 @@ export function ShoppingCart({
             </View>
 
             <TouchableOpacity
-              style={styles.checkoutButton}
+              style={[
+                styles.checkoutButton,
+                isCheckoutPending && styles.buttonDisabled,
+              ]}
               onPress={handleCheckout}
+              disabled={isCheckoutPending}
             >
-              <Text style={styles.checkoutButtonText}>Finalizar Compra</Text>
+              {isCheckoutPending ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <Text style={styles.checkoutButtonText}>Finalizar Compra</Text>
+              )}
             </TouchableOpacity>
           </View>
         </>
@@ -279,5 +328,8 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
 });

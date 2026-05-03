@@ -77,11 +77,7 @@ export default function StoreScreen({ navigation }: any) {
             </Text>
           </View>
         ) : (
-          <MangaGrid
-            mangas={filteredMangas}
-            onAddToCart={addToCart}
-            onMangaClick={handleMangaPress}
-          />
+          <MangaGrid mangas={filteredMangas} onMangaClick={handleMangaPress} />
         )}
       </View>
     </SafeAreaProvider>
