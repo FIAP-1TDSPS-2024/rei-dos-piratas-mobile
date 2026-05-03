@@ -95,7 +95,7 @@ export default function ProfileScreen() {
                 />
                 <View style={styles.onlineIndicator} />
               </View>
-              <Text style={styles.welcomeText}>Bem-vindo!</Text>
+              <Text style={styles.welcomeText}>Bem-vindo(a)!</Text>
               <Text style={styles.userName}>{user.name}</Text>
               <Text style={styles.userEmail}>{user.email}</Text>
             </View>
@@ -283,6 +283,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: colors.gray800,
+    textAlign: "center",
     marginBottom: 4,
   },
   userEmail: {

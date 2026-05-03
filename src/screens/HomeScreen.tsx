@@ -39,7 +39,7 @@ interface RegisterForm {
 }
 
 export default function HomeScreen() {
-  const { loading, login, register } = useAuth();
+  const { loading, login, register, isLoggingIn, isRegistering } = useAuth();
 
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [showPassword, setShowPassword] = useState(false);
@@ -255,16 +255,26 @@ export default function HomeScreen() {
                   </View>
 
                   <TouchableOpacity
-                    style={styles.primaryButton}
+                    style={[
+                      styles.primaryButton,
+                      isLoggingIn && styles.primaryButtonDisabled,
+                    ]}
                     onPress={handleLogin}
+                    disabled={isLoggingIn}
                   >
-                    <Ionicons
-                      name="log-in"
-                      size={20}
-                      color="#ffffff"
-                      style={{ marginRight: 8 }}
-                    />
-                    <Text style={styles.primaryButtonText}>Entrar</Text>
+                    {isLoggingIn ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <>
+                        <Ionicons
+                          name="log-in"
+                          size={20}
+                          color="#ffffff"
+                          style={{ marginRight: 8 }}
+                        />
+                        <Text style={styles.primaryButtonText}>Entrar</Text>
+                      </>
+                    )}
                   </TouchableOpacity>
                 </>
               ) : (
@@ -424,16 +434,26 @@ export default function HomeScreen() {
                   </View>
 
                   <TouchableOpacity
-                    style={styles.primaryButton}
+                    style={[
+                      styles.primaryButton,
+                      isRegistering && styles.primaryButtonDisabled,
+                    ]}
                     onPress={handleRegister}
+                    disabled={isRegistering}
                   >
-                    <Ionicons
-                      name="person-add"
-                      size={20}
-                      color="#ffffff"
-                      style={{ marginRight: 8 }}
-                    />
-                    <Text style={styles.primaryButtonText}>Criar Conta</Text>
+                    {isRegistering ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <>
+                        <Ionicons
+                          name="person-add"
+                          size={20}
+                          color="#ffffff"
+                          style={{ marginRight: 8 }}
+                        />
+                        <Text style={styles.primaryButtonText}>Criar Conta</Text>
+                      </>
+                    )}
                   </TouchableOpacity>
                 </>
               )}
@@ -591,6 +611,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 10,
+  },
+  primaryButtonDisabled: {
+    opacity: 0.7,
   },
   primaryButtonText: {
     color: "#ffffff",

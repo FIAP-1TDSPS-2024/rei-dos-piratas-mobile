@@ -35,6 +35,8 @@ interface AuthContextType {
   isLoggedIn: boolean;
   user: UserProfile | null;
   loading: boolean;
+  isLoggingIn: boolean;
+  isRegistering: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (data: RegisterRequest) => Promise<boolean>;
   logout: () => Promise<void>;
@@ -184,6 +186,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isLoggedIn,
     user,
     loading,
+    isLoggingIn: loginMutation.isPending,
+    isRegistering: registerMutation.isPending,
     login,
     register,
     logout,
