@@ -17,6 +17,7 @@ import StoreScreen from "../screens/StoreScreen";
 import CartScreen from "../screens/CartScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import MangaDetailScreen from "../screens/MangaDetailScreen";
+import OrderHistoryScreen from "../screens/OrderHistoryScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -111,6 +112,13 @@ function AppContent() {
               component={MangaDetailScreen}
               options={{
                 title: "Detalhes do Mangá",
+              }}
+            />
+            <Stack.Screen
+              name="OrderHistory"
+              component={OrderHistoryScreen}
+              options={{
+                title: "Histórico de pedidos",
               }}
             />
           </>

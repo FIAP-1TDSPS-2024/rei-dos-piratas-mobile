@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { colors } from "../styles/globalStyles";
 import { useAuth } from "../context/AuthContext";
 
@@ -26,6 +27,7 @@ interface ProfileUpdateForm {
 
 export default function ProfileScreen() {
   const { user, loading, logout, updateProfile } = useAuth();
+  const navigation = useNavigation<any>();
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -206,6 +208,22 @@ export default function ProfileScreen() {
                 </View>
               )}
 
+              {/* Histórico de pedidos */}
+              <TouchableOpacity
+                style={styles.orderHistoryButton}
+                onPress={() => navigation.navigate("OrderHistory")}
+              >
+                <Ionicons name="receipt" size={20} color={colors.primary} />
+                <Text style={styles.orderHistoryButtonText}>
+                  Histórico de pedidos
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+
               {/* Botão de logout */}
               <TouchableOpacity style={styles.logoutButton} onPress={logout}>
                 <Ionicons name="log-out" size={20} color={colors.danger} />
@@ -383,6 +401,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  orderHistoryButton: {
+    backgroundColor: "transparent",
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 20,
+  },
+  orderHistoryButtonText: {
+    flex: 1,
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
   logoutButton: {
     backgroundColor: "transparent",
     paddingVertical: 16,
@@ -393,7 +431,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 8,
-    marginTop: 20,
+    marginTop: 12,
   },
   logoutButtonText: {
     color: colors.danger,
