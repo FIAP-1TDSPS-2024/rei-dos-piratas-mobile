@@ -7,8 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Category } from "../types";
-// 1. Importando o hook de Tema
-import { useTheme } from "../context/ThemeContext";
+import { colors } from "../styles/globalStyles";
 
 interface CategoryFilterProps {
   categories: Category[];
@@ -21,48 +20,32 @@ export function CategoryFilter({
   selectedCategory,
   onCategoryChange,
 }: CategoryFilterProps) {
-  // 2. Extraindo as cores dinâmicas
-  const { colors, isDark } = useTheme();
-
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={styles.container}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
       >
-        {categories.map((category) => {
-          const isSelected = selectedCategory === category;
-
-          return (
-            <TouchableOpacity
-              key={category}
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category}
+            style={[
+              styles.categoryButton,
+              selectedCategory === category && styles.selectedCategoryButton,
+            ]}
+            onPress={() => onCategoryChange(category)}
+          >
+            <Text
               style={[
-                styles.categoryButton,
-                {
-                  // Fundo e borda dinâmicos para itens não selecionados
-                  backgroundColor: isDark ? colors.surface : "#f3f4f6",
-                  borderColor: isDark ? colors.border : "#e5e7eb",
-                },
-                isSelected && [
-                  styles.selectedCategoryButton,
-                  { backgroundColor: colors.primary, borderColor: colors.primary },
-                ],
+                styles.categoryText,
+                selectedCategory === category && styles.selectedCategoryText,
               ]}
-              onPress={() => onCategoryChange(category)}
             >
-              <Text
-                style={[
-                  styles.categoryText,
-                  { color: isDark ? colors.textSecondary : "#374151" },
-                  isSelected && styles.selectedCategoryText,
-                ]}
-              >
-                {category}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+              {category}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
     </View>
   );
@@ -71,7 +54,7 @@ export function CategoryFilter({
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 16,
-    // backgroundColor: "#ffffff", <-- Removido, agora é dinâmico
+    backgroundColor: "#ffffff",
   },
   scrollContainer: {
     paddingHorizontal: 16,
@@ -81,16 +64,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+    backgroundColor: colors.gray100,
     borderWidth: 1,
+    borderColor: colors.gray200,
   },
   selectedCategoryButton: {
-    // As cores primárias são aplicadas no array de styles no JSX
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   categoryText: {
     fontSize: 14,
     fontWeight: "500",
+    color: colors.gray700,
   },
   selectedCategoryText: {
-    color: "#ffffff", // Sempre branco para dar contraste com o fundo colorido (primary)
+    color: "#ffffff",
   },
 });

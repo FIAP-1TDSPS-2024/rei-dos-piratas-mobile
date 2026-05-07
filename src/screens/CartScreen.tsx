@@ -1,51 +1,120 @@
-import React, { useCallback } from "react";
-import { StyleSheet } from "react-native";
+import React from "react";
+import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFocusEffect } from "@react-navigation/native";
-import { useQueryClient } from "@tanstack/react-query";
 import { ShoppingCart } from "../components/ShoppingCart";
-import { useCart } from "../context/CartContext";
-import { useTheme } from "../context/ThemeContext";
+import { colors } from "../styles/globalStyles";
+import {
+  useAddCartItemMutation,
+  useCartQuery,
+  useClearCartMutation,
+  useRemoveCartItemMutation,
+} from "../hooks/useCartQuery";
 
 export default function CartScreen({ navigation }: any) {
-  const {
-    cartItems,
-    incrementQuantity,
-    decrementQuantity,
-    removeItem
-  } = useCart();
+  const { data, isLoading, isError, refetch } = useCartQuery();
+  const addItemMutation = useAddCartItemMutation();
+  const removeItemMutation = useRemoveCartItemMutation();
+  const clearCartMutation = useClearCartMutation();
 
-  // Mantemos o tema apenas para a cor de fundo do container principal
-  const { colors } = useTheme();
+  const cartItems = data?.items ?? [];
 
-  const queryClient = useQueryClient();
+  const handleUpdateQuantity = (id: string, quantity: number) => {
+    const current = cartItems.find((item) => item.manga.id === id);
+    if (!current) return;
 
-  useFocusEffect(
-    useCallback(() => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-    }, [queryClient])
-  );
+    if (quantity <= 0) {
+      removeItemMutation.mutate({
+        mangaId: id,
+        quantidade: current.quantity,
+      });
+      return;
+    }
+
+    const diff = quantity - current.quantity;
+    if (diff === 0) return;
+
+    if (diff > 0) {
+      addItemMutation.mutate({ mangaId: id, quantidade: diff });
+    } else {
+      removeItemMutation.mutate({ mangaId: id, quantidade: -diff });
+    }
+  };
+
+  const handleRemoveItem = (id: string) => {
+    const current = cartItems.find((item) => item.manga.id === id);
+    if (!current) return;
+    removeItemMutation.mutate({
+      mangaId: id,
+      quantidade: current.quantity,
+    });
+  };
 
   const handleCheckout = () => {
-    navigation.navigate("Checkout");
+    // TODO: replace with /pedidos endpoint when available
+    clearCartMutation.mutate(undefined, {
+      onSuccess: () => {
+        Alert.alert(
+          "Pedido Confirmado!",
+          "Seu pedido foi realizado com sucesso. Obrigado pela compra!",
+          [{ text: "OK", onPress: () => navigation.navigate("Store") }],
+        );
+      },
+      onError: () => {
+        Alert.alert("Erro", "Não foi possível finalizar a compra.");
+      },
+    });
   };
 
   const handleClose = () => {
     navigation.navigate("Store");
   };
 
+  const pendingMangaId = addItemMutation.isPending
+    ? (addItemMutation.variables?.mangaId ?? null)
+    : removeItemMutation.isPending
+      ? (removeItemMutation.variables?.mangaId ?? null)
+      : null;
+
+  const pendingAction: "add" | "remove" | null = addItemMutation.isPending
+    ? "add"
+    : removeItemMutation.isPending
+      ? "remove"
+      : null;
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>Erro ao carregar o carrinho.</Text>
+          <Text style={styles.retryText} onPress={() => refetch()}>
+            Tentar novamente
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView 
-      style={[styles.container, { backgroundColor: colors.background }]} 
-      edges={["top"]}
-    >
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <ShoppingCart
         cartItems={cartItems}
-        onIncrement={incrementQuantity}
-        onDecrement={decrementQuantity}
-        onRemoveItem={removeItem}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
         onCheckout={handleCheckout}
         onClose={handleClose}
+        pendingMangaId={pendingMangaId}
+        pendingAction={pendingAction}
+        isCheckoutPending={clearCartMutation.isPending}
       />
     </SafeAreaView>
   );
@@ -54,5 +123,21 @@ export default function CartScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  }
+    backgroundColor: colors.light,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    fontSize: 16,
+    color: colors.dark,
+    marginBottom: 8,
+  },
+  retryText: {
+    fontSize: 14,
+    color: colors.dark,
+    textDecorationLine: "underline",
+  },
 });

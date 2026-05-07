@@ -1,12 +1,14 @@
-import { api } from "./api";
+import api from "./api";
+
+// --- Request Types ---
 
 export interface LoginRequest {
   email: string;
-  senha: string;
+  password: string;
 }
 
 export interface RegisterRequest {
-  user_name: string;
+  user_name?: string;
   nome_completo: string;
   email: string;
   senha: string;
@@ -16,8 +18,11 @@ export interface RegisterRequest {
   celular: string;
 }
 
+// --- Response Types ---
+
 export interface Cliente {
   id: number;
+  user_name: string;
   nome_completo: string;
   email: string;
   celular: string;
@@ -33,6 +38,8 @@ export interface AuthResponse {
   roles: string[];
 }
 
+// --- API Calls ---
+
 export const authService = {
   login: async (data: LoginRequest): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>("/auth/login", data);
@@ -40,6 +47,11 @@ export const authService = {
   },
 
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
+    // TODO: Deprecated - Remove user_name from RegisterRequest and backend
+    if (!data.user_name) {
+      data.user_name = data.email;
+    }
+
     const response = await api.post<AuthResponse>("/auth/cadastro", data);
     return response.data;
   },

@@ -5,21 +5,12 @@ import { Manga } from "../types";
 
 interface MangaGridProps {
   mangas: Manga[];
-  onAddToCart: (manga: Manga) => void;
   onMangaClick: (manga: Manga) => void;
 }
 
-export function MangaGrid({
-  mangas,
-  onAddToCart,
-  onMangaClick,
-}: MangaGridProps) {
+export function MangaGrid({ mangas, onMangaClick }: MangaGridProps) {
   const renderManga: ListRenderItem<Manga> = ({ item }) => (
-    <MangaCard
-      manga={item}
-      onAddToCart={onAddToCart}
-      onMangaClick={onMangaClick}
-    />
+    <MangaCard manga={item} onMangaClick={onMangaClick} />
   );
 
   return (
