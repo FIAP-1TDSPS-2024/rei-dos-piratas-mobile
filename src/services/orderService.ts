@@ -37,14 +37,8 @@ export interface PedidosPageResponse {
 
 export const orderService = {
   getOrders: async (): Promise<PedidoBackend[]> => {
-    console.log("Fetching orders...");
-    try {
       const response = await api.get<PedidosPageResponse>("/pedidos");
       console.log("Orders fetched successfully:", response.data);
       return response.data.page_items;
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      throw error;
-    }
   },
 };
