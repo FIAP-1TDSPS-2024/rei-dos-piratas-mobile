@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,24 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../styles/globalStyles";
 import { useCreateAddressMutation } from "../../hooks/useAddressesQuery";
+
+interface ViaCepResponse {
+  cep?: string;
+  logradouro?: string;
+  bairro?: string;
+  localidade?: string;
+  uf?: string;
+  estado?: string;
+  erro?: boolean | string;
+}
+
+const formatCep = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  if (digits.length > 5) {
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  }
+  return digits;
+};
 
 interface FormState {
   numero: string;
@@ -38,10 +56,52 @@ const INITIAL: FormState = {
 
 export default function NewAddressScreen({ navigation }: any) {
   const [form, setForm] = useState<FormState>(INITIAL);
+  const [isFetchingCep, setIsFetchingCep] = useState(false);
+  const lastFetchedCep = useRef<string>("");
   const createAddress = useCreateAddressMutation();
 
   const setField = (field: keyof FormState) => (value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
+
+  const fetchCep = async (digits: string) => {
+    if (lastFetchedCep.current === digits) return;
+    lastFetchedCep.current = digits;
+    setIsFetchingCep(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      if (!response.ok) {
+        throw new Error("CEP request failed");
+      }
+      const data: ViaCepResponse = await response.json();
+      if (data.erro) {
+        Alert.alert("CEP não encontrado", "Verifique o CEP digitado.");
+        return;
+      }
+      setForm((prev) => ({
+        ...prev,
+        logradouro: data.logradouro || prev.logradouro,
+        bairro: data.bairro || prev.bairro,
+        cidade: data.localidade || prev.cidade,
+        estado_nome: data.estado || prev.estado_nome,
+        estado_sigla: (data.uf || prev.estado_sigla).toUpperCase(),
+      }));
+    } catch {
+      Alert.alert("Erro", "Não foi possível buscar o CEP.");
+    } finally {
+      setIsFetchingCep(false);
+    }
+  };
+
+  const handleCepChange = (value: string) => {
+    const formatted = formatCep(value);
+    setForm((prev) => ({ ...prev, cep: formatted }));
+    const digits = formatted.replace(/\D/g, "");
+    if (digits.length === 8) {
+      fetchCep(digits);
+    } else {
+      lastFetchedCep.current = "";
+    }
+  };
 
   const handleSubmit = () => {
     const numero = Number(form.numero);
@@ -106,15 +166,23 @@ export default function NewAddressScreen({ navigation }: any) {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.label}>CEP *</Text>
-          <TextInput
-            style={styles.input}
-            value={form.cep}
-            onChangeText={setField("cep")}
-            placeholder="00000000"
-            keyboardType="number-pad"
-            maxLength={9}
-            placeholderTextColor={colors.gray400}
-          />
+          <View style={styles.cepRow}>
+            <TextInput
+              style={[styles.input, styles.cepInput]}
+              value={form.cep}
+              onChangeText={handleCepChange}
+              placeholder="00000-000"
+              keyboardType="number-pad"
+              maxLength={9}
+              placeholderTextColor={colors.gray400}
+            />
+            {isFetchingCep && (
+              <ActivityIndicator
+                style={styles.cepLoader}
+                color={colors.primary}
+              />
+            )}
+          </View>
 
           <Text style={styles.label}>Logradouro *</Text>
           <TextInput
@@ -225,4 +293,7 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: colors.white, fontWeight: "600", fontSize: 16 },
+  cepRow: { position: "relative", justifyContent: "center" },
+  cepInput: { paddingRight: 40 },
+  cepLoader: { position: "absolute", right: 12 },
 });
