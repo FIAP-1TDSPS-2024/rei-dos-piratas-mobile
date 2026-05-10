@@ -18,17 +18,20 @@ import {
   useLoginMutation,
   useRegisterMutation,
 } from "../hooks/useAuthMutations";
+import {
+  useUpdateClienteMutation,
+  useDeleteClienteMutation,
+} from "../hooks/useClienteMutations";
 
 export interface UserProfile {
   id: string;
+  userName: string;
   name: string;
   email: string;
-  isActive: boolean;
-  createdAt: string;
+  cpf: string;
   birthDate: string;
   gender: string;
   phone?: string;
-  address?: string;
 }
 
 interface AuthContextType {
@@ -37,10 +40,13 @@ interface AuthContextType {
   loading: boolean;
   isLoggingIn: boolean;
   isRegistering: boolean;
+  isUpdatingProfile: boolean;
+  isDeletingAccount: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (data: RegisterRequest) => Promise<boolean>;
   logout: () => Promise<void>;
-  updateProfile: (profileData: Partial<UserProfile>) => Promise<void>;
+  updateProfile: (profileData: Partial<UserProfile>) => Promise<boolean>;
+  deleteAccount: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,11 +62,11 @@ const STORAGE_KEYS = {
 function mapClienteToUserProfile(cliente: Cliente): UserProfile {
   return {
     id: String(cliente.id),
+    userName: cliente.user_name,
     name: cliente.nome_completo,
     email: cliente.email,
+    cpf: cliente.cpf,
     phone: cliente.celular,
-    isActive: cliente.usuario_ativo,
-    createdAt: cliente.data_cadastro,
     birthDate: cliente.data_nascimento,
     gender: cliente.sexo,
   };
@@ -83,6 +89,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const loginMutation = useLoginMutation();
   const registerMutation = useRegisterMutation();
+  const updateClienteMutation = useUpdateClienteMutation();
+  const deleteClienteMutation = useDeleteClienteMutation();
   const queryClient = useQueryClient();
 
   // Carregar dados do usuário ao inicializar
@@ -164,11 +172,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const updateProfile = async (profileData: Partial<UserProfile>) => {
-    try {
-      if (!user) return;
+  const updateProfile = async (
+    profileData: Partial<UserProfile>,
+  ): Promise<boolean> => {
+    if (!user) return false;
 
-      const updatedUser = { ...user, ...profileData };
+    try {
+      const merged = { ...user, ...profileData };
+      const cliente = await updateClienteMutation.mutateAsync({
+        id: Number(merged.id),
+        cpf: merged.cpf,
+        user_name: merged.userName,
+        nome_completo: merged.name,
+        email: merged.email,
+        celular: merged.phone || "",
+        data_nascimento: merged.birthDate,
+        sexo: merged.gender,
+      });
+
+      const updatedUser = mapClienteToUserProfile(cliente);
       setUser(updatedUser);
       await AsyncStorage.setItem(
         STORAGE_KEYS.CURRENT_USER,
@@ -176,9 +198,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
       );
 
       Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
-    } catch (error) {
+      return true;
+    } catch (error: any) {
       console.error("Erro ao atualizar perfil:", error);
-      Alert.alert("Erro", "Erro ao atualizar perfil.");
+      const message =
+        error?.response?.data?.message || "Erro ao atualizar perfil.";
+      Alert.alert("Erro", message);
+      return false;
+    }
+  };
+
+  const deleteAccount = async (): Promise<boolean> => {
+    try {
+      await deleteClienteMutation.mutateAsync();
+      await logout();
+      Alert.alert("Conta excluída", "Sua conta foi excluída com sucesso.");
+      return true;
+    } catch (error: any) {
+      console.error("Erro ao excluir conta:", error);
+      const message =
+        error?.response?.data?.message || "Erro ao excluir conta.";
+      Alert.alert("Erro", message);
+      return false;
     }
   };
 
@@ -188,10 +229,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     loading,
     isLoggingIn: loginMutation.isPending,
     isRegistering: registerMutation.isPending,
+    isUpdatingProfile: updateClienteMutation.isPending,
+    isDeletingAccount: deleteClienteMutation.isPending,
     login,
     register,
     logout,
     updateProfile,
+    deleteAccount,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

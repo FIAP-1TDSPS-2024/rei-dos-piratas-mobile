@@ -26,7 +26,15 @@ interface ProfileUpdateForm {
 }
 
 export default function ProfileScreen() {
-  const { user, loading, logout, updateProfile } = useAuth();
+  const {
+    user,
+    loading,
+    logout,
+    updateProfile,
+    deleteAccount,
+    isUpdatingProfile,
+    isDeletingAccount,
+  } = useAuth();
   const navigation = useNavigation<any>();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -34,7 +42,6 @@ export default function ProfileScreen() {
   const [profileForm, setProfileForm] = useState<ProfileUpdateForm>({
     name: "",
     phone: "",
-    address: "",
   });
 
   // Carregar dados do perfil quando usuário estiver logado
@@ -43,7 +50,6 @@ export default function ProfileScreen() {
       setProfileForm({
         name: user.name,
         phone: user.phone || "",
-        address: user.address || "",
       });
     }
   }, [user]);
@@ -54,13 +60,31 @@ export default function ProfileScreen() {
       return;
     }
 
-    await updateProfile({
+    const success = await updateProfile({
       name: profileForm.name,
       phone: profileForm.phone,
-      address: profileForm.address,
     });
 
-    setIsEditing(false);
+    if (success) {
+      setIsEditing(false);
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Excluir conta",
+      "Tem certeza que deseja excluir sua conta? Essa ação não pode ser desfeita.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => {
+            deleteAccount();
+          },
+        },
+      ],
+    );
   };
 
   if (loading || !user) {
@@ -160,34 +184,26 @@ export default function ProfileScreen() {
                 />
               </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Endereço</Text>
-                <TextInput
-                  style={[
-                    styles.input,
-                    styles.textArea,
-                    !isEditing && styles.inputDisabled,
-                  ]}
-                  value={profileForm.address}
-                  onChangeText={(value) =>
-                    setProfileForm((prev) => ({ ...prev, address: value }))
-                  }
-                  placeholder="Digite seu endereço completo"
-                  multiline
-                  numberOfLines={3}
-                  placeholderTextColor={colors.gray400}
-                  editable={isEditing}
-                />
-              </View>
-
               {isEditing && (
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity
-                    style={styles.saveButton}
+                    style={[
+                      styles.saveButton,
+                      isUpdatingProfile && styles.buttonDisabled,
+                    ]}
                     onPress={handleUpdateProfile}
+                    disabled={isUpdatingProfile}
                   >
-                    <Ionicons name="save" size={20} color="#ffffff" />
-                    <Text style={styles.saveButtonText}>Salvar Alterações</Text>
+                    {isUpdatingProfile ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <>
+                        <Ionicons name="save" size={20} color="#ffffff" />
+                        <Text style={styles.saveButtonText}>
+                          Salvar Alterações
+                        </Text>
+                      </>
+                    )}
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -198,9 +214,9 @@ export default function ProfileScreen() {
                       setProfileForm({
                         name: user.name,
                         phone: user.phone || "",
-                        address: user.address || "",
                       });
                     }}
+                    disabled={isUpdatingProfile}
                   >
                     <Ionicons name="close" size={20} color={colors.gray600} />
                     <Text style={styles.cancelButtonText}>Cancelar</Text>
@@ -245,18 +261,27 @@ export default function ProfileScreen() {
                 <Ionicons name="log-out" size={20} color={colors.danger} />
                 <Text style={styles.logoutButtonText}>Sair da Conta</Text>
               </TouchableOpacity>
-            </View>
 
-            {/* Informações da conta */}
-            <View style={styles.accountInfo}>
-              <Text style={styles.accountInfoTitle}>Informações da Conta</Text>
-              <View style={styles.accountInfoItem}>
-                <Ionicons name="calendar" size={16} color={colors.gray500} />
-                <Text style={styles.accountInfoText}>
-                  Membro desde{" "}
-                  {new Date(user.createdAt).toLocaleDateString("pt-BR")}
-                </Text>
-              </View>
+              {/* Botão de excluir conta */}
+              <TouchableOpacity
+                style={[
+                  styles.deleteAccountButton,
+                  isDeletingAccount && styles.buttonDisabled,
+                ]}
+                onPress={handleDeleteAccount}
+                disabled={isDeletingAccount}
+              >
+                {isDeletingAccount ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <>
+                    <Ionicons name="trash" size={20} color="#ffffff" />
+                    <Text style={styles.deleteAccountButtonText}>
+                      Excluir Conta
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>
@@ -453,6 +478,24 @@ const styles = StyleSheet.create({
     color: colors.danger,
     fontSize: 16,
     fontWeight: "600",
+  },
+  deleteAccountButton: {
+    backgroundColor: colors.danger,
+    paddingVertical: 16,
+    borderRadius: 8,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 12,
+  },
+  deleteAccountButtonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   accountInfo: {
     backgroundColor: "#ffffff",

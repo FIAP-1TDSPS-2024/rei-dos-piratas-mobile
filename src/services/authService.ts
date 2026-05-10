@@ -24,10 +24,9 @@ export interface Cliente {
   id: number;
   user_name: string;
   nome_completo: string;
+  cpf: string;
   email: string;
   celular: string;
-  usuario_ativo: boolean;
-  data_cadastro: string;
   data_nascimento: string;
   sexo: string;
 }
