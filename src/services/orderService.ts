@@ -33,12 +33,28 @@ export interface PedidosPageResponse {
   page_items: PedidoBackend[];
 }
 
+export interface CreateOrderItemRequest {
+  produto_id: number;
+  quantidade: number;
+}
+
+export interface CreateOrderRequest {
+  frete_service_id: number;
+  endereco_entrega_id: number;
+  produtos_adicionados: CreateOrderItemRequest[];
+}
+
 // --- API Calls ---
 
 export const orderService = {
   getOrders: async (): Promise<PedidoBackend[]> => {
-      const response = await api.get<PedidosPageResponse>("/pedidos");
-      console.log("Orders fetched successfully:", response.data);
-      return response.data.page_items;
+    const response = await api.get<PedidosPageResponse>("/pedidos");
+    return response.data.page_items;
+  },
+
+  // TODO: Validate error: Consulte o valor do frete do pedido antes do cálculo de valor total
+  createOrder: async (data: CreateOrderRequest): Promise<PedidoBackend> => {
+    const response = await api.post<PedidoBackend>("/pedidos", data);
+    return response.data;
   },
 };

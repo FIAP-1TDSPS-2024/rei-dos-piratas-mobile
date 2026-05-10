@@ -7,7 +7,6 @@ export const STORAGE_KEYS = {
 };
 
 const getBaseURL = () => {
-  /*
   const debuggerHost =
     Constants.expoConfig?.hostUri ??
     Constants.manifest2?.extra?.expoGo?.debuggerHost;
@@ -16,9 +15,8 @@ const getBaseURL = () => {
   if (host) {
     return `http://${host}:8080`;
   }
-  */
 
-  return "https://rei-dos-piratas-app-dpgre9ffemfrangx.canadacentral-01.azurewebsites.net";
+  //return "https://rei-dos-piratas-app-dpgre9ffemfrangx.canadacentral-01.azurewebsites.net";
 };
 
 const api = axios.create({

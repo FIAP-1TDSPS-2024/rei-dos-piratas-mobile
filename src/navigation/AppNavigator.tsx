@@ -18,6 +18,11 @@ import CartScreen from "../screens/CartScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import MangaDetailScreen from "../screens/MangaDetailScreen";
 import OrderHistoryScreen from "../screens/OrderHistoryScreen";
+import AddressListScreen from "../screens/AddressListScreen";
+import AddressSelectionScreen from "../screens/checkout/AddressSelectionScreen";
+import NewAddressScreen from "../screens/checkout/NewAddressScreen";
+import FreightSelectionScreen from "../screens/checkout/FreightSelectionScreen";
+import OrderConfirmationScreen from "../screens/checkout/OrderConfirmationScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -120,6 +125,31 @@ function AppContent() {
               options={{
                 title: "Histórico de pedidos",
               }}
+            />
+            <Stack.Screen
+              name="AddressList"
+              component={AddressListScreen}
+              options={{ title: "Meus endereços" }}
+            />
+            <Stack.Screen
+              name="CheckoutAddress"
+              component={AddressSelectionScreen}
+              options={{ title: "Endereço de entrega" }}
+            />
+            <Stack.Screen
+              name="NewAddress"
+              component={NewAddressScreen}
+              options={{ title: "Novo endereço" }}
+            />
+            <Stack.Screen
+              name="CheckoutFreight"
+              component={FreightSelectionScreen}
+              options={{ title: "Forma de envio" }}
+            />
+            <Stack.Screen
+              name="OrderConfirmation"
+              component={OrderConfirmationScreen}
+              options={{ title: "Confirmar pedido" }}
             />
           </>
         ) : (

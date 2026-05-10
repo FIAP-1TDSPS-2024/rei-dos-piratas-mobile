@@ -224,6 +224,22 @@ export default function ProfileScreen() {
                 />
               </TouchableOpacity>
 
+              {/* Meus endereços */}
+              <TouchableOpacity
+                style={styles.orderHistoryButton}
+                onPress={() => navigation.navigate("AddressList")}
+              >
+                <Ionicons name="location" size={20} color={colors.primary} />
+                <Text style={styles.orderHistoryButtonText}>
+                  Meus endereços
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+
               {/* Botão de logout */}
               <TouchableOpacity style={styles.logoutButton} onPress={logout}>
                 <Ionicons name="log-out" size={20} color={colors.danger} />

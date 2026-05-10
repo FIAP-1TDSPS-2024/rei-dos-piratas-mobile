@@ -6,7 +6,6 @@ import { colors } from "../styles/globalStyles";
 import {
   useAddCartItemMutation,
   useCartQuery,
-  useClearCartMutation,
   useRemoveCartItemMutation,
 } from "../hooks/useCartQuery";
 
@@ -14,7 +13,6 @@ export default function CartScreen({ navigation }: any) {
   const { data, isLoading, isError, refetch } = useCartQuery();
   const addItemMutation = useAddCartItemMutation();
   const removeItemMutation = useRemoveCartItemMutation();
-  const clearCartMutation = useClearCartMutation();
 
   const cartItems = data?.items ?? [];
 
@@ -50,19 +48,14 @@ export default function CartScreen({ navigation }: any) {
   };
 
   const handleCheckout = () => {
-    // TODO: replace with /pedidos endpoint when available
-    clearCartMutation.mutate(undefined, {
-      onSuccess: () => {
-        Alert.alert(
-          "Pedido Confirmado!",
-          "Seu pedido foi realizado com sucesso. Obrigado pela compra!",
-          [{ text: "OK", onPress: () => navigation.navigate("Store") }],
-        );
-      },
-      onError: () => {
-        Alert.alert("Erro", "Não foi possível finalizar a compra.");
-      },
-    });
+    if (cartItems.length === 0) {
+      Alert.alert(
+        "Carrinho vazio",
+        "Adicione produtos antes de finalizar a compra.",
+      );
+      return;
+    }
+    navigation.navigate("CheckoutAddress");
   };
 
   const handleClose = () => {
@@ -114,7 +107,7 @@ export default function CartScreen({ navigation }: any) {
         onClose={handleClose}
         pendingMangaId={pendingMangaId}
         pendingAction={pendingAction}
-        isCheckoutPending={clearCartMutation.isPending}
+        isCheckoutPending={false}
       />
     </SafeAreaView>
   );
