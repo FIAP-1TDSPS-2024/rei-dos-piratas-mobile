@@ -27,7 +27,6 @@ const mapMangaGenre = (categoria: ProdutoCategoriaEnum): Category => {
   }
 };
 
-// TODO: Categoria será mapeada quando o backend retornar esse campo
 function mapProdutoToManga(produto: Produto): Manga {
   return {
     id: String(produto.id),

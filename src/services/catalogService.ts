@@ -40,14 +40,6 @@ export interface CatalogResponse {
   size: number;
 }
 
-/*
-TODO List
-autor
-preco_original
-categoria
-
-*/
-
 export const catalogService = {
   getProducts: async (): Promise<Produto[]> => {
     const response = await api.get<CatalogBackendResponse>("/produtos");

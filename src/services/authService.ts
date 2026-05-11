@@ -46,10 +46,7 @@ export const authService = {
   },
 
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
-    // TODO: Deprecated - Remove user_name from RegisterRequest and backend
-    if (!data.user_name) {
-      data.user_name = data.email;
-    }
+    data.user_name = data.email;
 
     const response = await api.post<AuthResponse>("/auth/cadastro", data);
     return response.data;
