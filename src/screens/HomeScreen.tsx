@@ -308,6 +308,68 @@ export default function HomeScreen() {
                   </View>
 
                   <View style={styles.inputGroup}>
+                    <Text style={styles.label}>CPF *</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={registerForm.cpf}
+                      onChangeText={(value) =>
+                        setRegisterForm((prev) => ({ ...prev, cpf: value }))
+                      }
+                      placeholder="Digite seu CPF (somente números)"
+                      keyboardType="numeric"
+                      maxLength={11}
+                      placeholderTextColor={colors.gray400}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Celular *</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={registerForm.phone}
+                      onChangeText={(value) =>
+                        setRegisterForm((prev) => ({ ...prev, phone: value }))
+                      }
+                      placeholder="Digite seu celular"
+                      keyboardType="phone-pad"
+                      placeholderTextColor={colors.gray400}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Data de Nascimento *</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={registerForm.birthDate}
+                      onChangeText={(value) =>
+                        setRegisterForm((prev) => ({
+                          ...prev,
+                          birthDate: maskBrDate(value),
+                        }))
+                      }
+                      placeholder="DD/MM/AAAA"
+                      placeholderTextColor={colors.gray400}
+                      keyboardType="numeric"
+                      maxLength={10}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Sexo *</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={registerForm.gender}
+                      onChangeText={(value) =>
+                        setRegisterForm((prev) => ({ ...prev, gender: value }))
+                      }
+                      placeholder="M ou F"
+                      maxLength={1}
+                      autoCapitalize="characters"
+                      placeholderTextColor={colors.gray400}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
                     <Text style={styles.label}>
                       Senha * (entre 8 e 20 caracteres)
                     </Text>
@@ -371,68 +433,6 @@ export default function HomeScreen() {
                     </View>
                   </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>CPF *</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={registerForm.cpf}
-                      onChangeText={(value) =>
-                        setRegisterForm((prev) => ({ ...prev, cpf: value }))
-                      }
-                      placeholder="Digite seu CPF (somente números)"
-                      keyboardType="numeric"
-                      maxLength={11}
-                      placeholderTextColor={colors.gray400}
-                    />
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Celular *</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={registerForm.phone}
-                      onChangeText={(value) =>
-                        setRegisterForm((prev) => ({ ...prev, phone: value }))
-                      }
-                      placeholder="Digite seu celular"
-                      keyboardType="phone-pad"
-                      placeholderTextColor={colors.gray400}
-                    />
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Data de Nascimento *</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={registerForm.birthDate}
-                      onChangeText={(value) =>
-                        setRegisterForm((prev) => ({
-                          ...prev,
-                          birthDate: maskBrDate(value),
-                        }))
-                      }
-                      placeholder="DD/MM/AAAA"
-                      placeholderTextColor={colors.gray400}
-                      keyboardType="numeric"
-                      maxLength={10}
-                    />
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Sexo *</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={registerForm.gender}
-                      onChangeText={(value) =>
-                        setRegisterForm((prev) => ({ ...prev, gender: value }))
-                      }
-                      placeholder="M ou F"
-                      maxLength={1}
-                      autoCapitalize="characters"
-                      placeholderTextColor={colors.gray400}
-                    />
-                  </View>
-
                   <TouchableOpacity
                     style={[
                       styles.primaryButton,
@@ -451,7 +451,9 @@ export default function HomeScreen() {
                           color="#ffffff"
                           style={{ marginRight: 8 }}
                         />
-                        <Text style={styles.primaryButtonText}>Criar Conta</Text>
+                        <Text style={styles.primaryButtonText}>
+                          Criar Conta
+                        </Text>
                       </>
                     )}
                   </TouchableOpacity>
