@@ -10,7 +10,22 @@ Uma versão mobile da loja de mangás "Rei dos Piratas", agora integrada com bac
 
 ## Link do repositório
 
+```
 https://github.com/FIAP-1TDSPS-2024/rei-dos-piratas-mobile
+```
+
+## Vídeo do projeto
+
+```
+https://youtu.be/12ezMQBmk4s
+```
+
+## Credenciais de login
+
+```
+email: wendell@gmail.com
+password: extended
+```
 
 ---
 
@@ -42,6 +57,7 @@ Nesta etapa, o projeto deixou de utilizar dados mockados e passou a consumir uma
 - **Gerenciamento de Estado**: Migração para **TanStack Query (React Query)**, garantindo cache inteligente e sincronização em tempo real.
 - **Segurança (JWT)**: Autenticação baseada em tokens com permissões de acesso (`ROLE_CARRINHO_MANAGE`).
 - **Lógica de Negócio Robusta**: O carrinho agora valida estoque e gerencia quantidades diretamente no servidor.
+- **Integração com API de frete**: Nosso back-end está integrado com a Melhor Envio que faz o calculo do frente antes da finalização da compra.
 
 ## 📱 Funcionalidades
 
@@ -103,7 +119,3 @@ Para garantir a consistência financeira e de estoque, implementamos um fluxo r�
     # Limpando cache para garantir carregamento limpo de assets
     npx expo start -c
     ```
-
-## Vídeo do projeto
-
-https://youtu.be/AJstJzzFkGM
