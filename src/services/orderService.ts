@@ -52,7 +52,6 @@ export const orderService = {
     return response.data.page_items;
   },
 
-  // TODO: Validate error: Consulte o valor do frete do pedido antes do cálculo de valor total
   createOrder: async (data: CreateOrderRequest): Promise<PedidoBackend> => {
     const response = await api.post<PedidoBackend>("/pedidos", data);
     return response.data;

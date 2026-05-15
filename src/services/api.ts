@@ -7,16 +7,18 @@ export const STORAGE_KEYS = {
 };
 
 const getBaseURL = () => {
-  const debuggerHost =
-    Constants.expoConfig?.hostUri ??
-    Constants.manifest2?.extra?.expoGo?.debuggerHost;
-  const host = debuggerHost?.split(":")[0];
+  // Local development URL (Expo Go)
+  //const debuggerHost =
+  //  Constants.expoConfig?.hostUri ??
+  //  Constants.manifest2?.extra?.expoGo?.debuggerHost;
+  //const host = debuggerHost?.split(":")[0];
+  //
+  //if (host) {
+  //  return `http://${host}:8080`;
+  //}
 
-  if (host) {
-    return `http://${host}:8080`;
-  }
-
-  //return "https://rei-dos-piratas-app-dpgre9ffemfrangx.canadacentral-01.azurewebsites.net";
+  // AWS
+  return "http://rei-dos-piratas-alb-359480469.sa-east-1.elb.amazonaws.com:8080";
 };
 
 const api = axios.create({
